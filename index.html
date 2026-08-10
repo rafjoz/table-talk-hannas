@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Table Talk — Hanna's on Main</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          "on-background": "#1e1b18", "background": "#fff8f5", "surface": "#fff8f5",
+          "surface-bright": "#fff8f5", "surface-dim": "#e1d8d4",
+          "surface-container-lowest": "#ffffff", "surface-container-low": "#fbf2ed",
+          "surface-container": "#f5ece7", "surface-container-high": "#efe6e2",
+          "surface-container-highest": "#e9e1dc", "surface-variant": "#e9e1dc",
+          "on-surface": "#1e1b18", "on-surface-variant": "#594238",
+          "outline": "#8c7166", "outline-variant": "#e0c0b2",
+          "primary": "#9e3d00", "on-primary": "#ffffff", "primary-container": "#c64f00",
+          "on-primary-container": "#fffbff", "primary-fixed": "#ffdbcd", "primary-fixed-dim": "#ffb595",
+          "secondary": "#5e5e5b", "on-secondary": "#ffffff", "secondary-container": "#e1dfdb",
+          "on-secondary-container": "#63635f",
+          "tertiary": "#4d6151", "on-tertiary": "#ffffff", "tertiary-container": "#667969",
+          "on-tertiary-container": "#f6fff4", "tertiary-fixed": "#d3e8d5", "tertiary-fixed-dim": "#b7ccb9",
+          "error": "#ba1a1a", "on-error": "#ffffff", "error-container": "#ffdad6", "on-error-container": "#93000a",
+          "inverse-surface": "#34302c", "inverse-on-surface": "#f8efea", "inverse-primary": "#ffb595"
+        },
+        borderRadius: { DEFAULT: "1rem", lg: "2rem", xl: "3rem", full: "9999px" },
+        spacing: { base: "4px", xs: "8px", sm: "16px", md: "24px", lg: "40px", xl: "64px", gutter: "16px", "container-margin": "20px" },
+        fontFamily: {
+          "headline": ["Epilogue", "sans-serif"], "body": ["Plus Jakarta Sans", "sans-serif"]
+        },
+        fontSize: {
+          "headline-xl": ["40px", { lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "700" }],
+          "headline-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.01em", fontWeight: "600" }],
+          "headline-lg-mobile": ["28px", { lineHeight: "36px", fontWeight: "600" }],
+          "headline-md": ["24px", { lineHeight: "32px", fontWeight: "600" }],
+          "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+          "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+          "label-md": ["14px", { lineHeight: "20px", letterSpacing: "0.02em", fontWeight: "600" }],
+          "label-sm": ["12px", { lineHeight: "16px", fontWeight: "500" }]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Plus Jakarta Sans', sans-serif; }
+  h1,h2,h3,.font-headline { font-family: 'Epilogue', sans-serif; }
+  .screen { display: none; }
+  .screen.active { display: flex; }
+  .ambient-shadow { box-shadow: 0 8px 32px -8px rgba(158,61,0,0.10), 0 2px 8px -2px rgba(158,61,0,0.05); }
+  .star-btn .material-symbols-outlined { font-variation-settings: 'FILL' 0; transition: all .15s ease; color: #c8c6c2; }
+  .star-btn.active .material-symbols-outlined { font-variation-settings: 'FILL' 1; color: #9e3d00; }
+  .chip { transition: all .15s ease; }
+  .chip.selected { background: #4d6151; color: #fff; border-color: #4d6151; }
+  .toggle-track { width: 44px; height: 26px; background: #e9e1dc; border-radius: 9999px; position: relative; transition: background .2s ease; flex-shrink:0; }
+  .toggle-track.on { background: #9e3d00; }
+  .toggle-dot { position:absolute; top:3px; left:3px; width:20px; height:20px; background:#fff; border-radius:50%; transition: transform .2s ease; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+  .toggle-track.on .toggle-dot { transform: translateX(18px); }
+  .type-pill-compliment { background:#d3e8d5; color:#0e1f13; }
+  .type-pill-issue { background:#ffdad6; color:#93000a; }
+  .type-pill-suggestion { background:#e1dfdb; color:#1b1c19; }
+  .type-pill-rating { background:#ffdbcd; color:#351000; }
+  .fade-in { animation: fadeIn .35s ease both; }
+  @keyframes fadeIn { from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb { background: #e0c0b2; border-radius: 9999px; }
+</style>
+</head>
+<body class="bg-background text-on-background antialiased min-h-screen">
+
+<!-- View switch (dev/review only) -->
+<div class="fixed top-3 right-3 z-[100] bg-surface-container-lowest ambient-shadow rounded-full p-1 flex gap-1 text-label-sm font-medium">
+  <button id="tab-guest" onclick="setMode('guest')" class="px-3 py-1.5 rounded-full transition-colors">Guest view</button>
+  <button id="tab-staff" onclick="setMode('staff')" class="px-3 py-1.5 rounded-full transition-colors">Staff view</button>
+</div>
+
+<!-- ============ GUEST APP ============ -->
+<div id="guest-app" class="w-full">
+
+  <!-- WELCOME -->
+  <section id="screen-welcome" class="screen active fade-in min-h-screen flex-col items-center justify-center px-container-margin py-xl w-full max-w-[640px] mx-auto">
+    <header class="w-full text-center mb-lg flex flex-col items-center">
+      <div class="w-20 h-20 rounded-full bg-primary flex items-center justify-center mb-sm ambient-shadow">
+        <span class="font-headline text-2xl font-bold text-white">H</span>
+      </div>
+      <span class="text-label-sm text-primary tracking-[0.15em] uppercase mb-1">Table Talk · Hanna's on Main</span>
+      <h1 class="text-headline-lg-mobile text-on-surface mb-xs">How was your visit today?</h1>
+      <p class="text-body-md text-on-surface-variant max-w-md mx-auto">We'd love to hear about your experience — it genuinely helps us serve you better.</p>
+    </header>
+    <div class="grid grid-cols-2 gap-sm w-full mb-lg">
+      <button onclick="go('compliment')" class="bg-surface-container-lowest border border-surface-container-high rounded-xl p-md flex flex-col items-center justify-center text-center ambient-shadow hover:-translate-y-1 transition-all duration-300 aspect-square group">
+        <div class="w-14 h-14 rounded-full bg-primary-fixed flex items-center justify-center mb-sm">
+          <span class="material-symbols-outlined text-[28px] text-primary">local_dining</span>
+        </div>
+        <span class="text-label-md text-on-surface">Compliment the Chef</span>
+      </button>
+      <button onclick="go('rate')" class="bg-surface-container-lowest border border-surface-container-high rounded-xl p-md flex flex-col items-center justify-center text-center ambient-shadow hover:-translate-y-1 transition-all duration-300 aspect-square group">
+        <div class="w-14 h-14 rounded-full bg-tertiary-fixed flex items-center justify-center mb-sm">
+          <span class="material-symbols-outlined text-[28px] text-tertiary">star</span>
+        </div>
+        <span class="text-label-md text-on-surface">Rate Your Visit</span>
+      </button>
+      <button onclick="go('issue')" class="bg-surface-container-lowest border border-surface-container-high rounded-xl p-md flex flex-col items-center justify-center text-center ambient-shadow hover:-translate-y-1 transition-all duration-300 aspect-square group">
+        <div class="w-14 h-14 rounded-full bg-error-container flex items-center justify-center mb-sm">
+          <span class="material-symbols-outlined text-[28px] text-error">flag</span>
+        </div>
+        <span class="text-label-md text-on-surface">Something Wasn't Right</span>
+      </button>
+      <button onclick="go('suggest')" class="bg-surface-container-lowest border border-surface-container-high rounded-xl p-md flex flex-col items-center justify-center text-center ambient-shadow hover:-translate-y-1 transition-all duration-300 aspect-square group">
+        <div class="w-14 h-14 rounded-full bg-secondary-container flex items-center justify-center mb-sm">
+          <span class="material-symbols-outlined text-[28px] text-secondary">lightbulb</span>
+        </div>
+        <span class="text-label-md text-on-surface">Suggest an Idea</span>
+      </button>
+    </div>
+    <button onclick="quickNote()" class="text-label-md text-outline hover:text-primary transition-colors underline underline-offset-4">Want to skip the questions? Tap here</button>
+  </section>
+
+  <!-- RATE YOUR VISIT -->
+  <section id="screen-rate" class="screen fade-in flex-col min-h-screen w-full max-w-[640px] mx-auto">
+    <header class="sticky top-0 z-30 bg-background w-full flex justify-between items-center px-container-margin py-sm">
+      <span class="text-headline-md text-primary">Hanna's on Main</span>
+      <button onclick="go('welcome')" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container text-on-surface-variant"><span class="material-symbols-outlined">close</span></button>
+    </header>
+    <main class="px-container-margin pb-40 flex flex-col gap-lg">
+      <section class="text-center pt-sm">
+        <h1 class="text-headline-xl text-primary mb-2">How did we do?</h1>
+        <p class="text-body-lg text-secondary">We'd love to hear about your experience.</p>
+      </section>
+      <section class="bg-surface-container-lowest rounded-3xl p-md ambient-shadow flex flex-col gap-md" id="rating-rows"></section>
+      <section class="flex flex-col gap-sm">
+        <div>
+          <label class="block text-label-md text-on-surface mb-xs ml-4">Who was your server?</label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-secondary">person</span>
+            <select id="server-select" class="w-full bg-surface-container rounded-2xl border-none pl-12 pr-4 py-4 text-body-md focus:ring-2 focus:ring-primary appearance-none cursor-pointer">
+              <option value="">Select server or skip</option>
+              <option>Sarah M.</option><option>David L.</option><option>Elena V.</option><option>Michael T.</option><option>I don't remember</option>
+            </select>
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-secondary pointer-events-none">expand_more</span>
+          </div>
+        </div>
+        <div>
+          <label class="block text-label-md text-on-surface mb-xs ml-4">What did you have to eat?</label>
+          <textarea id="rate-food" class="w-full bg-surface-container rounded-2xl border-none px-4 py-4 text-body-md focus:ring-2 focus:ring-primary resize-none" rows="2" placeholder="e.g. Truffle Risotto, Scallops..."></textarea>
+        </div>
+        <div class="bg-surface-container rounded-2xl p-4 flex items-center justify-between mt-sm">
+          <span class="text-label-md text-on-surface">Would you recommend us?</span>
+          <div class="toggle-track" onclick="toggleSwitch(this)"><div class="toggle-dot"></div></div>
+        </div>
+      </section>
+      <button onclick="submitRating()" class="w-full bg-primary text-on-primary text-label-md py-4 rounded-full shadow-lg hover:bg-primary-container transition-colors">Continue</button>
+    </main>
+  </section>
+
+  <!-- COMPLIMENT THE CHEF -->
+  <section id="screen-compliment" class="screen fade-in flex-col min-h-screen w-full max-w-[640px] mx-auto">
+    <header class="sticky top-0 z-30 bg-background w-full flex justify-between items-center px-container-margin py-sm">
+      <span class="text-headline-md text-primary">Hanna's on Main</span>
+      <button onclick="go('welcome')" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container text-on-surface-variant"><span class="material-symbols-outlined">close</span></button>
+    </header>
+    <main class="px-container-margin pb-40 flex flex-col gap-md">
+      <div class="text-center py-sm">
+        <h2 class="text-headline-lg-mobile text-on-surface mb-xs">Made the chef's day yet? 👨‍🍳</h2>
+        <p class="text-body-md text-on-surface-variant">Let the kitchen know what you loved about your meal.</p>
+      </div>
+      <div class="bg-surface-container-lowest rounded-3xl ambient-shadow p-md flex flex-col gap-sm">
+        <textarea id="compliment-text" class="w-full bg-surface-container rounded-2xl p-sm text-body-md placeholder-on-surface-variant/50 outline-none focus:ring-2 focus:ring-primary resize-none" rows="5" placeholder="The risotto was absolutely incredible..."></textarea>
+        <div class="flex flex-wrap gap-xs pt-xs" id="compliment-chips">
+          <button data-chip class="chip px-4 py-2 rounded-full border border-outline-variant text-label-md text-on-surface-variant active:scale-95">Perfectly Cooked</button>
+          <button data-chip class="chip px-4 py-2 rounded-full border border-outline-variant text-label-md text-on-surface-variant active:scale-95">Amazing Flavors</button>
+          <button data-chip class="chip px-4 py-2 rounded-full border border-outline-variant text-label-md text-on-surface-variant active:scale-95">Beautiful Plating</button>
+        </div>
+      </div>
+      <div class="bg-surface-container-lowest rounded-3xl ambient-shadow p-md flex flex-col gap-sm">
+        <div class="flex items-center justify-between gap-sm">
+          <div class="flex-1">
+            <h3 class="text-label-md text-on-surface">Would you like a reply?</h3>
+            <p class="text-label-sm text-on-surface-variant mt-0.5">The chef might write back!</p>
+          </div>
+          <div class="toggle-track on" onclick="toggleReply(this,'compliment-reply-fields')"><div class="toggle-dot"></div></div>
+        </div>
+        <div id="compliment-reply-fields" class="flex flex-col gap-sm pt-xs">
+          <hr class="border-surface-variant">
+          <label class="text-label-md text-on-surface">Where should we send the reply?</label>
+          <input id="compliment-contact" class="w-full bg-surface-container rounded-2xl px-sm py-3 text-body-md outline-none focus:ring-2 focus:ring-primary" placeholder="Enter your email or phone number">
+        </div>
+      </div>
+      <button onclick="submitCompliment()" class="w-full bg-primary text-on-primary text-label-md py-4 rounded-full shadow-lg hover:bg-primary-container transition-colors flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-[18px]">send</span> Send to the Kitchen
+      </button>
+    </main>
+  </section>
+
+  <!-- SOMETHING WASN'T RIGHT -->
+  <section id="screen-issue" class="screen fade-in flex-col min-h-screen w-full max-w-[640px] mx-auto">
+    <header class="sticky top-0 z-30 bg-background w-full flex justify-between items-center px-container-margin py-sm">
+      <span class="text-headline-md text-primary">Hanna's on Main</span>
+      <button onclick="go('welcome')" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container text-on-surface-variant"><span class="material-symbols-outlined">close</span></button>
+    </header>
+    <main class="px-container-margin pb-40 flex flex-col gap-lg">
+      <section class="flex flex-col gap-xs pt-sm">
+        <div class="w-12 h-12 rounded-full bg-error-container flex items-center justify-center mb-xs">
+          <span class="material-symbols-outlined text-on-error-container text-[24px]" style="font-variation-settings:'FILL' 1">sentiment_dissatisfied</span>
+        </div>
+        <h2 class="text-headline-lg-mobile text-on-surface">Let's fix this — tell us what happened.</h2>
+        <p class="text-body-md text-on-surface-variant">Your experience matters. Share the details so we can make it right.</p>
+      </section>
+      <fieldset class="flex flex-col gap-sm">
+        <legend class="text-label-md text-on-surface-variant mb-xs">What area needs attention?</legend>
+        <div class="flex flex-wrap gap-xs" id="issue-chips">
+          <button data-chip class="chip px-5 py-3 rounded-full border border-outline-variant text-label-md text-on-surface-variant flex items-center gap-2 active:scale-95"><span class="material-symbols-outlined text-[18px]">restaurant_menu</span>Food</button>
+          <button data-chip class="chip px-5 py-3 rounded-full border border-outline-variant text-label-md text-on-surface-variant flex items-center gap-2 active:scale-95"><span class="material-symbols-outlined text-[18px]">room_service</span>Service</button>
+          <button data-chip class="chip px-5 py-3 rounded-full border border-outline-variant text-label-md text-on-surface-variant flex items-center gap-2 active:scale-95"><span class="material-symbols-outlined text-[18px]">schedule</span>Wait Time</button>
+          <button data-chip class="chip px-5 py-3 rounded-full border border-outline-variant text-label-md text-on-surface-variant flex items-center gap-2 active:scale-95"><span class="material-symbols-outlined text-[18px]">cleaning_services</span>Cleanliness</button>
+          <button data-chip class="chip px-5 py-3 rounded-full border border-outline-variant text-label-md text-on-surface-variant flex items-center gap-2 active:scale-95"><span class="material-symbols-outlined text-[18px]">more_horiz</span>Other</button>
+        </div>
+      </fieldset>
+      <textarea id="issue-text" class="w-full bg-surface-container-lowest rounded-3xl px-6 py-4 text-body-md ambient-shadow outline-none focus:ring-2 focus:ring-primary resize-none" rows="4" placeholder="Please share more about what went wrong..."></textarea>
+      <div class="bg-surface-container rounded-3xl p-6 flex flex-col gap-sm ambient-shadow">
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-primary mt-1">support_agent</span>
+          <div>
+            <h3 class="text-label-md text-on-surface">We'll follow up right away</h3>
+            <p class="text-body-md text-on-surface-variant text-[14px]">Leave your contact info so a manager can reach out personally.</p>
+          </div>
+        </div>
+        <input id="issue-contact" class="w-full bg-surface-container-lowest rounded-full px-6 py-4 text-body-md outline-none focus:ring-2 focus:ring-primary shadow-sm" placeholder="Email or Phone Number (Optional)">
+      </div>
+      <div>
+        <button onclick="submitIssue()" class="w-full bg-primary text-on-primary text-label-md py-5 rounded-full flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]">
+          <span class="material-symbols-outlined">send</span> Send to Manager
+        </button>
+        <p class="text-center text-label-sm text-on-surface-variant mt-4 opacity-70">Flagged as urgent — the management team is notified immediately.</p>
+      </div>
+    </main>
+  </section>
+
+  <!-- SUGGEST AN IDEA -->
+  <section id="screen-suggest" class="screen fade-in flex-col min-h-screen w-full max-w-[640px] mx-auto">
+    <header class="sticky top-0 z-30 bg-background/90 backdrop-blur-md w-full flex justify-between items-center px-container-margin py-sm">
+      <button onclick="go('welcome')" class="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-low hover:bg-surface-container"><span class="material-symbols-outlined text-on-surface-variant">arrow_back</span></button>
+      <span class="text-headline-md text-primary">Hanna's on Main</span>
+      <span class="w-11 h-11"></span>
+    </header>
+    <main class="px-container-margin py-lg flex flex-col flex-grow gap-lg pb-40">
+      <section>
+        <h1 class="text-headline-xl text-on-background mb-sm leading-tight">Got an idea to make us better? 💡</h1>
+        <p class="text-body-lg text-on-surface-variant">We're always looking for ways to improve. Let us know what you have in mind.</p>
+      </section>
+      <div>
+        <label class="block text-label-md text-on-surface-variant mb-xs ml-4">Your Idea</label>
+        <textarea id="suggest-text" class="w-full bg-surface-container-lowest rounded-[2rem] px-md py-md text-body-md ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none resize-none ambient-shadow" rows="6" placeholder="I'd love it if you guys started offering..."></textarea>
+      </div>
+      <div>
+        <label class="block text-label-md text-on-surface-variant mb-xs ml-4">Want to hear if we try it? (Optional)</label>
+        <div class="relative">
+          <span class="material-symbols-outlined text-secondary-fixed-dim absolute left-md top-1/2 -translate-y-1/2 pointer-events-none">alternate_email</span>
+          <input id="suggest-contact" type="email" class="w-full bg-surface-container-lowest rounded-[2rem] pl-[56px] pr-md py-sm text-body-md ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none ambient-shadow" placeholder="your@email.com">
+        </div>
+      </div>
+      <button onclick="submitSuggestion()" class="w-full bg-primary text-on-primary text-label-md py-4 rounded-full flex items-center justify-center gap-xs shadow-lg mt-auto">
+        Share Idea <span class="material-symbols-outlined">send</span>
+      </button>
+    </main>
+  </section>
+
+  <!-- THANK YOU -->
+  <section id="screen-thankyou" class="screen fade-in flex-col min-h-screen w-full max-w-[640px] mx-auto items-center px-container-margin py-xl">
+    <div class="flex flex-col items-center mb-md">
+      <div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center mb-xs"><span class="font-headline text-xl font-bold text-white">H</span></div>
+      <span class="text-label-sm text-primary tracking-[0.15em] uppercase mb-0.5">Table Talk</span>
+      <span class="text-headline-md text-primary">Hanna's on Main</span>
+    </div>
+    <div class="text-center mb-lg flex flex-col items-center">
+      <div class="w-20 h-20 bg-tertiary-fixed rounded-full flex items-center justify-center mb-md">
+        <span class="material-symbols-outlined text-[40px] text-tertiary" style="font-variation-settings:'FILL' 1">check_circle</span>
+      </div>
+      <h1 id="thankyou-title" class="text-headline-lg-mobile text-on-surface mb-sm">Thanks — this was sent straight to the team.</h1>
+      <p id="thankyou-sub" class="text-body-lg text-on-surface-variant max-w-md mx-auto">A real person will see this, not just a database.</p>
+    </div>
+    <div class="w-full bg-surface-container-lowest rounded-3xl p-md md:p-lg ambient-shadow border border-outline-variant/30 mb-lg">
+      <div class="flex items-center gap-sm mb-md">
+        <div class="w-10 h-10 rounded-full bg-tertiary-fixed flex items-center justify-center"><span class="material-symbols-outlined text-tertiary">cake</span></div>
+        <h2 class="text-headline-md text-on-surface">Want birthday treats?</h2>
+      </div>
+      <p class="text-body-md text-on-surface-variant mb-md">Join the Customer Club for birthday &amp; anniversary perks. Totally optional.</p>
+      <div class="flex flex-col gap-sm">
+        <div class="flex flex-col md:flex-row gap-sm">
+          <div class="flex-1"><label class="text-label-md block mb-xs">Name</label><input class="w-full rounded-2xl bg-surface-container p-sm text-body-md outline-none focus:ring-2 focus:ring-primary" placeholder="Jane Doe"></div>
+          <div class="flex-1"><label class="text-label-md block mb-xs">Email</label><input class="w-full rounded-2xl bg-surface-container p-sm text-body-md outline-none focus:ring-2 focus:ring-primary" placeholder="jane@example.com"></div>
+        </div>
+        <div class="flex flex-col md:flex-row gap-sm">
+          <div class="flex-1"><label class="text-label-md block mb-xs">Cell Phone</label><input class="w-full rounded-2xl bg-surface-container p-sm text-body-md outline-none focus:ring-2 focus:ring-primary" placeholder="(555) 000-0000"></div>
+          <div class="flex-1"><label class="text-label-md block mb-xs">Birthday</label><input type="date" class="w-full rounded-2xl bg-surface-container p-sm text-body-md outline-none focus:ring-2 focus:ring-primary"></div>
+        </div>
+        <button onclick="go('welcome')" class="mt-md w-full bg-primary text-on-primary text-label-md rounded-full py-sm shadow-md active:scale-[0.98]">Join Customer Club</button>
+      </div>
+    </div>
+    <button onclick="go('welcome')" class="text-label-md text-secondary hover:text-on-surface">Skip, just take me back</button>
+  </section>
+</div>
+
+<!-- ============ STAFF DASHBOARD ============ -->
+<div id="staff-app" class="w-full hidden">
+  <div class="max-w-[1100px] mx-auto px-md py-md">
+    <header class="flex items-center justify-between py-sm mb-md border-b border-surface-container-high">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">restaurant</span>
+        <span class="text-headline-md text-primary">Table Talk <span class="text-on-surface-variant font-normal text-body-md">· Hanna's on Main Staff</span></span>
+      </div>
+      <div class="text-label-sm text-on-surface-variant">Live feed · updates as guests submit</div>
+    </header>
+    <div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-md">
+      <aside class="bg-surface-container-lowest rounded-3xl p-md ambient-shadow h-fit">
+        <h3 class="text-label-sm text-on-surface-variant mb-1">Overview</h3>
+        <div id="staff-overall" class="text-4xl font-bold text-primary font-headline mb-1">4.8<span class="text-lg text-on-surface-variant font-normal"> / 5</span></div>
+        <p class="text-label-sm text-tertiary mb-md">Across all rated visits</p>
+        <div class="flex flex-col gap-sm" id="staff-category-bars"></div>
+      </aside>
+      <main class="flex flex-col gap-sm">
+        <div class="flex items-center justify-between">
+          <h2 class="text-headline-md text-on-surface">Recent Feedback</h2>
+          <span id="staff-count" class="text-label-sm text-on-surface-variant"></span>
+        </div>
+        <div id="staff-feed" class="flex flex-col gap-sm"></div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- state ---------- */
+const categories = ["Food Quality","Menu Variety","Service","Atmosphere","Cleanliness","Overall Experience"];
+let currentRatings = {};
+
+let submissions = [
+  {type:"compliment", name:"Sarah Jenkins", table:"Table 12", time:"Today, 2:30 PM", text:"Absolutely phenomenal experience. Our server was incredibly knowledgeable about the wine pairings.", rating:5},
+  {type:"issue", name:"Marcus T.", table:"Table 4", time:"Yesterday, 8:15 PM", text:"Waited nearly 45 minutes for entrees, and the steak came medium-well instead of medium-rare.", rating:2},
+  {type:"rating", name:"Walk-in guest", table:"Table 7", time:"Yesterday, 6:40 PM", text:"Recommends us to friends. Food Quality 5, Service 4, Atmosphere 5.", rating:5},
+  {type:"suggestion", name:"Priya K.", table:"Table 9", time:"2 days ago", text:"Would love a few more vegan small plates on the shared-plates menu.", rating:null}
+];
+
+/* ---------- nav ---------- */
+function go(screen){
+  document.querySelectorAll('#guest-app .screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+screen).classList.add('active');
+  if(screen==='rate') buildRatingRows();
+  window.scrollTo({top:0,behavior:'instant'});
+}
+function setMode(mode){
+  const guest = document.getElementById('guest-app');
+  const staff = document.getElementById('staff-app');
+  document.getElementById('tab-guest').classList.toggle('bg-primary', mode==='guest');
+  document.getElementById('tab-guest').classList.toggle('text-white', mode==='guest');
+  document.getElementById('tab-staff').classList.toggle('bg-primary', mode==='staff');
+  document.getElementById('tab-staff').classList.toggle('text-white', mode==='staff');
+  if(mode==='guest'){ guest.classList.remove('hidden'); staff.classList.add('hidden'); }
+  else { guest.classList.add('hidden'); staff.classList.remove('hidden'); renderStaff(); }
+}
+
+/* ---------- rating stars ---------- */
+function buildRatingRows(){
+  const wrap = document.getElementById('rating-rows');
+  wrap.innerHTML = '';
+  currentRatings = {};
+  categories.forEach((cat,i)=>{
+    currentRatings[cat] = 0;
+    const row = document.createElement('div');
+    row.className = "flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-surface-container-highest pb-4 last:border-0 last:pb-0";
+    row.innerHTML = `<span class="text-label-md text-on-surface">${cat}</span>
+      <div class="flex gap-1" data-cat="${cat}">
+        ${[1,2,3,4,5].map(n=>`<button class="star-btn" data-n="${n}" onclick="setStar('${cat}',${n},this)"><span class="material-symbols-outlined text-3xl">star</span></button>`).join('')}
+      </div>`;
+    wrap.appendChild(row);
+  });
+}
+function setStar(cat,n,el){
+  currentRatings[cat] = n;
+  const group = el.closest('[data-cat]');
+  group.querySelectorAll('.star-btn').forEach((b,i)=> b.classList.toggle('active', i < n));
+}
+
+/* ---------- chips / toggles ---------- */
+document.addEventListener('click', e=>{
+  const chip = e.target.closest('[data-chip]');
+  if(chip){
+    // multi-select for issue chips, multi-select for compliment chips
+    chip.classList.toggle('selected');
+  }
+});
+function toggleSwitch(el){ el.classList.toggle('on'); }
+function toggleReply(el, fieldsId){
+  el.classList.toggle('on');
+  document.getElementById(fieldsId).style.display = el.classList.contains('on') ? 'flex' : 'none';
+}
+
+/* ---------- submit handlers ---------- */
+function selectedChipText(containerId){
+  return Array.from(document.querySelectorAll('#'+containerId+' .chip.selected')).map(b=>b.textContent.trim());
+}
+function pushSubmission(sub){
+  submissions.unshift(Object.assign({time:"Just now"}, sub));
+}
+function submitRating(){
+  const avg = Object.values(currentRatings).filter(v=>v>0);
+  const avgScore = avg.length ? Math.round(avg.reduce((a,b)=>a+b,0)/avg.length) : null;
+  pushSubmission({type:"rating", name:"Guest submission", table:"—", text:`Rated visit — ${categories.map(c=>`${c}: ${currentRatings[c]||'–'}`).join(', ')}.`, rating: avgScore});
+  showThankYou("Thanks — your ratings just landed on our dashboard.","The whole team reviews these every day.");
+}
+function submitCompliment(){
+  const text = document.getElementById('compliment-text').value || "(no message, just chips selected)";
+  const chips = selectedChipText('compliment-chips');
+  pushSubmission({type:"compliment", name:"Guest submission", table:"—", text: text + (chips.length? " · "+chips.join(", "):"")});
+  showThankYou("Thanks! We just sent this straight to the kitchen 👨‍🍳","If you asked for a reply, the chef (or a manager) will follow up personally.");
+}
+function submitIssue(){
+  const text = document.getElementById('issue-text').value || "(no details provided)";
+  const tags = selectedChipText('issue-chips');
+  pushSubmission({type:"issue", name:"Guest submission", table:"—", text: (tags.length? "["+tags.join(", ")+"] ":"") + text, rating:2});
+  showThankYou("Got it — a manager has been alerted right now.","We take this seriously. Someone will follow up as soon as possible.");
+}
+function submitSuggestion(){
+  const text = document.getElementById('suggest-text').value || "(no details provided)";
+  pushSubmission({type:"suggestion", name:"Guest submission", table:"—", text});
+  showThankYou("Love it — your idea just reached the team.","Great ideas often come from guests. Thank you for sharing.");
+}
+function quickNote(){
+  const msg = prompt("Quick note to the team:");
+  if(msg){
+    pushSubmission({type:"suggestion", name:"Guest submission", table:"—", text: msg});
+    showThankYou("Got it — thanks for the quick note!","We read every one of these.");
+  }
+}
+function showThankYou(title, sub){
+  document.getElementById('thankyou-title').textContent = title;
+  document.getElementById('thankyou-sub').textContent = sub;
+  go('thankyou');
+}
+
+/* ---------- staff dashboard render ---------- */
+const typeMeta = {
+  compliment: {label:"Compliment", cls:"type-pill-compliment"},
+  issue: {label:"Issue", cls:"type-pill-issue"},
+  suggestion: {label:"Suggestion", cls:"type-pill-suggestion"},
+  rating: {label:"Rating", cls:"type-pill-rating"}
+};
+function renderStaff(){
+  const rated = submissions.filter(s=>s.rating);
+  const avg = rated.length ? (rated.reduce((a,b)=>a+b.rating,0)/rated.length).toFixed(1) : "–";
+  document.getElementById('staff-overall').innerHTML = `${avg}<span class="text-lg text-on-surface-variant font-normal"> / 5</span>`;
+
+  const bars = [["Food Quality",4.9],["Service",4.7],["Ambiance",4.8]];
+  document.getElementById('staff-category-bars').innerHTML = bars.map(([label,val])=>`
+    <div>
+      <div class="flex justify-between text-label-md"><span>${label}</span><span class="text-primary font-semibold">${val}</span></div>
+      <div class="w-full h-2 bg-surface-container-high rounded-full mt-1"><div class="h-2 bg-primary rounded-full" style="width:${val/5*100}%"></div></div>
+    </div>`).join('');
+
+  document.getElementById('staff-count').textContent = submissions.length + " submissions";
+  document.getElementById('staff-feed').innerHTML = submissions.map((s,idx)=>{
+    const meta = typeMeta[s.type];
+    return `
+    <div class="bg-surface-container-lowest rounded-3xl p-md ambient-shadow border border-surface-container-high cursor-pointer" onclick="document.getElementById('reply-${idx}').classList.toggle('hidden')">
+      <div class="flex items-start justify-between gap-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-semibold">${(s.name||"G")[0]}</div>
+          <div>
+            <div class="text-label-md text-on-surface">${s.name}</div>
+            <div class="text-label-sm text-on-surface-variant">${s.time} · ${s.table}</div>
+          </div>
+        </div>
+        <span class="px-3 py-1 rounded-full text-label-sm ${meta.cls}">${meta.label}</span>
+      </div>
+      ${s.rating ? `<div class="flex gap-1 mt-2">${[1,2,3,4,5].map(n=>`<span class="material-symbols-outlined text-lg ${n<=s.rating?'text-primary':'text-surface-container-highest'}" style="font-variation-settings:'FILL' 1">star</span>`).join('')}</div>` : ''}
+      <p class="text-body-md text-on-surface mt-2">"${s.text}"</p>
+      <div id="reply-${idx}" class="hidden border-t border-surface-container pt-4 mt-4" onclick="event.stopPropagation()">
+        <label class="text-label-sm text-on-surface-variant mb-1 block">Reply as staff</label>
+        <textarea class="w-full bg-surface-container-low border border-surface-container-high rounded-2xl p-3 text-body-md focus:ring-2 focus:ring-primary resize-none" rows="2" placeholder="Draft a reply..."></textarea>
+        <button class="mt-2 bg-primary text-on-primary px-5 py-2 rounded-full text-label-md">Send Reply</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- init ---------- */
+setMode('guest');
+buildRatingRows();
+</script>
+</body>
+</html>
