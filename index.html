@@ -124,8 +124,9 @@
   <!-- RATE YOUR VISIT -->
   <section id="screen-rate" class="screen fade-in flex-col min-h-screen w-full max-w-[640px] mx-auto">
     <header class="sticky top-0 z-30 bg-background w-full flex justify-between items-center px-container-margin py-sm">
+      <button onclick="go('welcome')" class="flex items-center gap-1 text-label-md text-on-surface-variant hover:text-primary px-2 py-1.5 rounded-full hover:bg-surface-container transition-colors"><span aria-hidden="true">←</span> Back</button>
       <span class="text-headline-md text-primary">Hanna's on Main</span>
-      <button onclick="go('welcome')" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container text-on-surface-variant"><span class="material-symbols-outlined">close</span></button>
+      <span class="w-16"></span>
     </header>
     <main class="px-container-margin pb-40 flex flex-col gap-lg">
       <section class="text-center pt-sm">
@@ -161,8 +162,9 @@
   <!-- COMPLIMENT THE CHEF -->
   <section id="screen-compliment" class="screen fade-in flex-col min-h-screen w-full max-w-[640px] mx-auto">
     <header class="sticky top-0 z-30 bg-background w-full flex justify-between items-center px-container-margin py-sm">
+      <button onclick="go('welcome')" class="flex items-center gap-1 text-label-md text-on-surface-variant hover:text-primary px-2 py-1.5 rounded-full hover:bg-surface-container transition-colors"><span aria-hidden="true">←</span> Back</button>
       <span class="text-headline-md text-primary">Hanna's on Main</span>
-      <button onclick="go('welcome')" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container text-on-surface-variant"><span class="material-symbols-outlined">close</span></button>
+      <span class="w-16"></span>
     </header>
     <main class="px-container-margin pb-40 flex flex-col gap-md">
       <div class="text-center py-sm">
@@ -200,8 +202,9 @@
   <!-- SOMETHING WASN'T RIGHT -->
   <section id="screen-issue" class="screen fade-in flex-col min-h-screen w-full max-w-[640px] mx-auto">
     <header class="sticky top-0 z-30 bg-background w-full flex justify-between items-center px-container-margin py-sm">
+      <button onclick="go('welcome')" class="flex items-center gap-1 text-label-md text-on-surface-variant hover:text-primary px-2 py-1.5 rounded-full hover:bg-surface-container transition-colors"><span aria-hidden="true">←</span> Back</button>
       <span class="text-headline-md text-primary">Hanna's on Main</span>
-      <button onclick="go('welcome')" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-container text-on-surface-variant"><span class="material-symbols-outlined">close</span></button>
+      <span class="w-16"></span>
     </header>
     <main class="px-container-margin pb-40 flex flex-col gap-lg">
       <section class="flex flex-col gap-xs pt-sm">
@@ -244,9 +247,9 @@
   <!-- SUGGEST AN IDEA -->
   <section id="screen-suggest" class="screen fade-in flex-col min-h-screen w-full max-w-[640px] mx-auto">
     <header class="sticky top-0 z-30 bg-background/90 backdrop-blur-md w-full flex justify-between items-center px-container-margin py-sm">
-      <button onclick="go('welcome')" class="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-low hover:bg-surface-container"><span class="material-symbols-outlined text-on-surface-variant">arrow_back</span></button>
+      <button onclick="go('welcome')" class="flex items-center gap-1 text-label-md text-on-surface-variant hover:text-primary px-2 py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container transition-colors"><span aria-hidden="true">←</span> Back</button>
       <span class="text-headline-md text-primary">Hanna's on Main</span>
-      <span class="w-11 h-11"></span>
+      <span class="w-16"></span>
     </header>
     <main class="px-container-margin py-lg flex flex-col flex-grow gap-lg pb-40">
       <section>
@@ -272,6 +275,7 @@
 
   <!-- THANK YOU -->
   <section id="screen-thankyou" class="screen fade-in flex-col min-h-screen w-full max-w-[640px] mx-auto items-center px-container-margin py-xl">
+    <button onclick="go('welcome')" class="self-start flex items-center gap-1 text-label-md text-on-surface-variant hover:text-primary px-2 py-1.5 rounded-full hover:bg-surface-container transition-colors mb-sm"><span aria-hidden="true">←</span> Back</button>
     <div class="flex flex-col items-center mb-md">
       <div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center mb-xs"><span class="font-headline text-xl font-bold text-white">H</span></div>
       <span class="text-label-sm text-primary tracking-[0.15em] uppercase mb-0.5">Table Talk</span>
@@ -336,6 +340,21 @@
 
 <script>
 /* ---------- state ---------- */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby43kAbwAcScQqM1qhl_iD-eSx_uNA_GsJWPR6vk55x3a_d6N7znB4F8QGEZ60NelEpVg/exec";
+function submitToBackend(sub){
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    body: JSON.stringify({
+      type: sub.type || "",
+      details: sub.text || "",
+      server: sub.server || "",
+      rating: sub.rating || "",
+      contact: sub.contact || "",
+      urgent: sub.type === "issue"
+    })
+  });
+}
 const categories = ["Food Quality","Menu Variety","Service","Atmosphere","Cleanliness","Overall Experience"];
 let currentRatings = {};
 
@@ -406,28 +425,34 @@ function selectedChipText(containerId){
 }
 function pushSubmission(sub){
   submissions.unshift(Object.assign({time:"Just now"}, sub));
+  submitToBackend(sub);
 }
 function submitRating(){
   const avg = Object.values(currentRatings).filter(v=>v>0);
   const avgScore = avg.length ? Math.round(avg.reduce((a,b)=>a+b,0)/avg.length) : null;
-  pushSubmission({type:"rating", name:"Guest submission", table:"—", text:`Rated visit — ${categories.map(c=>`${c}: ${currentRatings[c]||'–'}`).join(', ')}.`, rating: avgScore});
+  const server = document.getElementById('server-select').value || "";
+  const food = document.getElementById('rate-food').value || "";
+  pushSubmission({type:"rating", name:"Guest submission", table:"—", server:server, text:`Rated visit — ${categories.map(c=>`${c}: ${currentRatings[c]||'–'}`).join(', ')}.${food? " Food: "+food:""}`, rating: avgScore});
   showThankYou("Thanks — your ratings just landed on our dashboard.","The whole team reviews these every day.");
 }
 function submitCompliment(){
   const text = document.getElementById('compliment-text').value || "(no message, just chips selected)";
   const chips = selectedChipText('compliment-chips');
-  pushSubmission({type:"compliment", name:"Guest submission", table:"—", text: text + (chips.length? " · "+chips.join(", "):"")});
+  const contact = document.getElementById('compliment-contact').value || "";
+  pushSubmission({type:"compliment", name:"Guest submission", table:"—", contact:contact, text: text + (chips.length? " · "+chips.join(", "):"")});
   showThankYou("Thanks! We just sent this straight to the kitchen 👨‍🍳","If you asked for a reply, the chef (or a manager) will follow up personally.");
 }
 function submitIssue(){
   const text = document.getElementById('issue-text').value || "(no details provided)";
   const tags = selectedChipText('issue-chips');
-  pushSubmission({type:"issue", name:"Guest submission", table:"—", text: (tags.length? "["+tags.join(", ")+"] ":"") + text, rating:2});
+  const contact = document.getElementById('issue-contact').value || "";
+  pushSubmission({type:"issue", name:"Guest submission", table:"—", contact:contact, text: (tags.length? "["+tags.join(", ")+"] ":"") + text, rating:2});
   showThankYou("Got it — a manager has been alerted right now.","We take this seriously. Someone will follow up as soon as possible.");
 }
 function submitSuggestion(){
   const text = document.getElementById('suggest-text').value || "(no details provided)";
-  pushSubmission({type:"suggestion", name:"Guest submission", table:"—", text});
+  const contact = document.getElementById('suggest-contact').value || "";
+  pushSubmission({type:"suggestion", name:"Guest submission", table:"—", contact:contact, text});
   showThankYou("Love it — your idea just reached the team.","Great ideas often come from guests. Thank you for sharing.");
 }
 function quickNote(){
