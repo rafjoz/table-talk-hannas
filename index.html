@@ -380,7 +380,25 @@ function setMode(mode){
   document.getElementById('tab-staff').classList.toggle('bg-primary', mode==='staff');
   document.getElementById('tab-staff').classList.toggle('text-white', mode==='staff');
   if(mode==='guest'){ guest.classList.remove('hidden'); staff.classList.add('hidden'); }
-  else { guest.classList.add('hidden'); staff.classList.remove('hidden'); renderStaff(); }
+  else { guest.classList.add('hidden'); staff.classList.remove('hidden'); loadFromSheet(); }
+}
+
+function loadFromSheet(){
+  renderStaff(); // show current data immediately while fetching
+  fetch(SCRIPT_URL)
+    .then(res => res.json())
+    .then(rows => {
+      submissions = rows.map(r => ({
+        type: r.type,
+        name: "Guest submission",
+        table: "—",
+        time: new Date(r.timestamp).toLocaleString(),
+        text: r.details,
+        rating: r.rating ? Number(r.rating) : null
+      }));
+      renderStaff();
+    })
+    .catch(err => console.log("Could not load sheet data:", err));
 }
 
 /* ---------- rating stars ---------- */
@@ -489,7 +507,7 @@ function renderStaff(){
 
   document.getElementById('staff-count').textContent = submissions.length + " submissions";
   document.getElementById('staff-feed').innerHTML = submissions.map((s,idx)=>{
-    const meta = typeMeta[s.type];
+    const meta = typeMeta[s.type] || {label: s.type || "Other", cls: "type-pill-suggestion"};
     return `
     <div class="bg-surface-container-lowest rounded-3xl p-md ambient-shadow border border-surface-container-high cursor-pointer" onclick="document.getElementById('reply-${idx}').classList.toggle('hidden')">
       <div class="flex items-start justify-between gap-sm">
