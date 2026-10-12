@@ -73,11 +73,8 @@
 </head>
 <body class="bg-background text-on-background antialiased min-h-screen">
 
-<!-- View switch (dev/review only) -->
-<div class="fixed top-3 right-3 z-[100] bg-surface-container-lowest ambient-shadow rounded-full p-1 flex gap-1 text-label-sm font-medium">
-  <button id="tab-guest" onclick="setMode('guest')" class="px-3 py-1.5 rounded-full transition-colors">Guest view</button>
-  <button id="tab-staff" onclick="setMode('staff')" class="px-3 py-1.5 rounded-full transition-colors">Staff view</button>
-</div>
+<!-- Pop-up messages (errors / confirmations) -->
+<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] max-w-[90vw] px-5 py-3 rounded-full bg-inverse-surface text-inverse-on-surface text-label-md ambient-shadow text-center hidden" role="status" aria-live="polite"></div>
 
 <!-- ============ GUEST APP ============ -->
 <div id="guest-app" class="w-full">
@@ -119,6 +116,7 @@
       </button>
     </div>
     <button onclick="quickNote()" class="text-label-md text-outline hover:text-primary transition-colors underline underline-offset-4">Want to skip the questions? Tap here</button>
+    <a href="#staff" class="mt-lg text-label-sm text-outline/60 hover:text-primary transition-colors">Staff login</a>
   </section>
 
   <!-- RATE YOUR VISIT -->
@@ -148,14 +146,14 @@
         </div>
         <div>
           <label class="block text-label-md text-on-surface mb-xs ml-4">What did you have to eat?</label>
-          <textarea id="rate-food" class="w-full bg-surface-container rounded-2xl border-none px-4 py-4 text-body-md focus:ring-2 focus:ring-primary resize-none" rows="2" placeholder="e.g. Truffle Risotto, Scallops..."></textarea>
+          <textarea id="rate-food" maxlength="200"class="w-full bg-surface-container rounded-2xl border-none px-4 py-4 text-body-md focus:ring-2 focus:ring-primary resize-none" rows="2" placeholder="e.g. Truffle Risotto, Scallops..."></textarea>
         </div>
         <div class="bg-surface-container rounded-2xl p-4 flex items-center justify-between mt-sm">
           <span class="text-label-md text-on-surface">Would you recommend us?</span>
-          <div class="toggle-track" onclick="toggleSwitch(this)"><div class="toggle-dot"></div></div>
+          <div id="rate-recommend" class="toggle-track" onclick="toggleSwitch(this)"><div class="toggle-dot"></div></div>
         </div>
       </section>
-      <button onclick="submitRating()" class="w-full bg-primary text-on-primary text-label-md py-4 rounded-full shadow-lg hover:bg-primary-container transition-colors">Continue</button>
+      <button onclick="submitRating(this)"class="w-full bg-primary text-on-primary text-label-md py-4 rounded-full shadow-lg hover:bg-primary-container transition-colors">Continue</button>
     </main>
   </section>
 
@@ -172,7 +170,7 @@
         <p class="text-body-md text-on-surface-variant">Let the kitchen know what you loved about your meal.</p>
       </div>
       <div class="bg-surface-container-lowest rounded-3xl ambient-shadow p-md flex flex-col gap-sm">
-        <textarea id="compliment-text" class="w-full bg-surface-container rounded-2xl p-sm text-body-md placeholder-on-surface-variant/50 outline-none focus:ring-2 focus:ring-primary resize-none" rows="5" placeholder="The risotto was absolutely incredible..."></textarea>
+        <textarea id="compliment-text" maxlength="1500"class="w-full bg-surface-container rounded-2xl p-sm text-body-md placeholder-on-surface-variant/50 outline-none focus:ring-2 focus:ring-primary resize-none" rows="5" placeholder="The risotto was absolutely incredible..."></textarea>
         <div class="flex flex-wrap gap-xs pt-xs" id="compliment-chips">
           <button data-chip class="chip px-4 py-2 rounded-full border border-outline-variant text-label-md text-on-surface-variant active:scale-95">Perfectly Cooked</button>
           <button data-chip class="chip px-4 py-2 rounded-full border border-outline-variant text-label-md text-on-surface-variant active:scale-95">Amazing Flavors</button>
@@ -185,15 +183,15 @@
             <h3 class="text-label-md text-on-surface">Would you like a reply?</h3>
             <p class="text-label-sm text-on-surface-variant mt-0.5">The chef might write back!</p>
           </div>
-          <div class="toggle-track on" onclick="toggleReply(this,'compliment-reply-fields')"><div class="toggle-dot"></div></div>
+          <div id="compliment-reply-toggle" class="toggle-track on" onclick="toggleReply(this,'compliment-reply-fields')"><div class="toggle-dot"></div></div>
         </div>
         <div id="compliment-reply-fields" class="flex flex-col gap-sm pt-xs">
           <hr class="border-surface-variant">
           <label class="text-label-md text-on-surface">Where should we send the reply?</label>
-          <input id="compliment-contact" class="w-full bg-surface-container rounded-2xl px-sm py-3 text-body-md outline-none focus:ring-2 focus:ring-primary" placeholder="Enter your email or phone number">
+          <input id="compliment-contact" maxlength="200"class="w-full bg-surface-container rounded-2xl px-sm py-3 text-body-md outline-none focus:ring-2 focus:ring-primary" placeholder="Enter your email or phone number">
         </div>
       </div>
-      <button onclick="submitCompliment()" class="w-full bg-primary text-on-primary text-label-md py-4 rounded-full shadow-lg hover:bg-primary-container transition-colors flex items-center justify-center gap-2">
+      <button onclick="submitCompliment(this)"class="w-full bg-primary text-on-primary text-label-md py-4 rounded-full shadow-lg hover:bg-primary-container transition-colors flex items-center justify-center gap-2">
         <span class="material-symbols-outlined text-[18px]">send</span> Send to the Kitchen
       </button>
     </main>
@@ -224,7 +222,18 @@
           <button data-chip class="chip px-5 py-3 rounded-full border border-outline-variant text-label-md text-on-surface-variant flex items-center gap-2 active:scale-95"><span class="material-symbols-outlined text-[18px]">more_horiz</span>Other</button>
         </div>
       </fieldset>
-      <textarea id="issue-text" class="w-full bg-surface-container-lowest rounded-3xl px-6 py-4 text-body-md ambient-shadow outline-none focus:ring-2 focus:ring-primary resize-none" rows="4" placeholder="Please share more about what went wrong..."></textarea>
+      <fieldset class="flex flex-col gap-sm">
+        <legend class="text-label-md text-on-surface-variant mb-xs">How serious was it? (Optional)</legend>
+        <div class="flex gap-xs" id="severity-pills">
+          <button type="button" data-sev="1" onclick="setSeverity(1)" class="chip flex-1 py-3 rounded-full border border-outline-variant text-label-md text-on-surface-variant active:scale-95">1</button>
+          <button type="button" data-sev="2" onclick="setSeverity(2)" class="chip flex-1 py-3 rounded-full border border-outline-variant text-label-md text-on-surface-variant active:scale-95">2</button>
+          <button type="button" data-sev="3" onclick="setSeverity(3)" class="chip flex-1 py-3 rounded-full border border-outline-variant text-label-md text-on-surface-variant active:scale-95">3</button>
+          <button type="button" data-sev="4" onclick="setSeverity(4)" class="chip flex-1 py-3 rounded-full border border-outline-variant text-label-md text-on-surface-variant active:scale-95">4</button>
+          <button type="button" data-sev="5" onclick="setSeverity(5)" class="chip flex-1 py-3 rounded-full border border-outline-variant text-label-md text-on-surface-variant active:scale-95">5</button>
+        </div>
+        <div class="flex justify-between text-label-sm text-on-surface-variant px-2"><span>Minor annoyance</span><span>Really bad</span></div>
+      </fieldset>
+      <textarea id="issue-text" maxlength="1500"class="w-full bg-surface-container-lowest rounded-3xl px-6 py-4 text-body-md ambient-shadow outline-none focus:ring-2 focus:ring-primary resize-none" rows="4" placeholder="Please share more about what went wrong..."></textarea>
       <div class="bg-surface-container rounded-3xl p-6 flex flex-col gap-sm ambient-shadow">
         <div class="flex items-start gap-3">
           <span class="material-symbols-outlined text-primary mt-1">support_agent</span>
@@ -233,10 +242,10 @@
             <p class="text-body-md text-on-surface-variant text-[14px]">Leave your contact info so a manager can reach out personally.</p>
           </div>
         </div>
-        <input id="issue-contact" class="w-full bg-surface-container-lowest rounded-full px-6 py-4 text-body-md outline-none focus:ring-2 focus:ring-primary shadow-sm" placeholder="Email or Phone Number (Optional)">
+        <input id="issue-contact" maxlength="200"class="w-full bg-surface-container-lowest rounded-full px-6 py-4 text-body-md outline-none focus:ring-2 focus:ring-primary shadow-sm" placeholder="Email or Phone Number (Optional)">
       </div>
       <div>
-        <button onclick="submitIssue()" class="w-full bg-primary text-on-primary text-label-md py-5 rounded-full flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]">
+        <button onclick="submitIssue(this)"class="w-full bg-primary text-on-primary text-label-md py-5 rounded-full flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]">
           <span class="material-symbols-outlined">send</span> Send to Manager
         </button>
         <p class="text-center text-label-sm text-on-surface-variant mt-4 opacity-70">Flagged as urgent — the management team is notified immediately.</p>
@@ -258,16 +267,16 @@
       </section>
       <div>
         <label class="block text-label-md text-on-surface-variant mb-xs ml-4">Your Idea</label>
-        <textarea id="suggest-text" class="w-full bg-surface-container-lowest rounded-[2rem] px-md py-md text-body-md ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none resize-none ambient-shadow" rows="6" placeholder="I'd love it if you guys started offering..."></textarea>
+        <textarea id="suggest-text" maxlength="1500"class="w-full bg-surface-container-lowest rounded-[2rem] px-md py-md text-body-md ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none resize-none ambient-shadow" rows="6" placeholder="I'd love it if you guys started offering..."></textarea>
       </div>
       <div>
         <label class="block text-label-md text-on-surface-variant mb-xs ml-4">Want to hear if we try it? (Optional)</label>
         <div class="relative">
           <span class="material-symbols-outlined text-secondary-fixed-dim absolute left-md top-1/2 -translate-y-1/2 pointer-events-none">alternate_email</span>
-          <input id="suggest-contact" type="email" class="w-full bg-surface-container-lowest rounded-[2rem] pl-[56px] pr-md py-sm text-body-md ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none ambient-shadow" placeholder="your@email.com">
+          <input id="suggest-contact" maxlength="200"type="email" class="w-full bg-surface-container-lowest rounded-[2rem] pl-[56px] pr-md py-sm text-body-md ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none ambient-shadow" placeholder="your@email.com">
         </div>
       </div>
-      <button onclick="submitSuggestion()" class="w-full bg-primary text-on-primary text-label-md py-4 rounded-full flex items-center justify-center gap-xs shadow-lg mt-auto">
+      <button onclick="submitSuggestion(this)"class="w-full bg-primary text-on-primary text-label-md py-4 rounded-full flex items-center justify-center gap-xs shadow-lg mt-auto">
         Share Idea <span class="material-symbols-outlined">send</span>
       </button>
     </main>
@@ -296,35 +305,61 @@
       <p class="text-body-md text-on-surface-variant mb-md">Join the Customer Club for birthday &amp; anniversary perks. Totally optional.</p>
       <div class="flex flex-col gap-sm">
         <div class="flex flex-col md:flex-row gap-sm">
-          <div class="flex-1"><label class="text-label-md block mb-xs">Name</label><input class="w-full rounded-2xl bg-surface-container p-sm text-body-md outline-none focus:ring-2 focus:ring-primary" placeholder="Jane Doe"></div>
-          <div class="flex-1"><label class="text-label-md block mb-xs">Email</label><input class="w-full rounded-2xl bg-surface-container p-sm text-body-md outline-none focus:ring-2 focus:ring-primary" placeholder="jane@example.com"></div>
+          <div class="flex-1"><label class="text-label-md block mb-xs">Name</label><input id="club-name" maxlength="100" autocomplete="name" class="w-full rounded-2xl bg-surface-container p-sm text-body-md outline-none focus:ring-2 focus:ring-primary" placeholder="Jane Doe"></div>
+          <div class="flex-1"><label class="text-label-md block mb-xs">Email</label><input id="club-email" type="email" maxlength="200" autocomplete="email" class="w-full rounded-2xl bg-surface-container p-sm text-body-md outline-none focus:ring-2 focus:ring-primary" placeholder="jane@example.com"></div>
         </div>
         <div class="flex flex-col md:flex-row gap-sm">
-          <div class="flex-1"><label class="text-label-md block mb-xs">Cell Phone</label><input class="w-full rounded-2xl bg-surface-container p-sm text-body-md outline-none focus:ring-2 focus:ring-primary" placeholder="(555) 000-0000"></div>
-          <div class="flex-1"><label class="text-label-md block mb-xs">Birthday</label><input type="date" class="w-full rounded-2xl bg-surface-container p-sm text-body-md outline-none focus:ring-2 focus:ring-primary"></div>
+          <div class="flex-1"><label class="text-label-md block mb-xs">Cell Phone</label><input id="club-cell" type="tel" maxlength="30" autocomplete="tel" class="w-full rounded-2xl bg-surface-container p-sm text-body-md outline-none focus:ring-2 focus:ring-primary" placeholder="(555) 000-0000"></div>
+          <div class="flex-1"><label class="text-label-md block mb-xs">Birthday</label><input id="club-birthday" type="date" class="w-full rounded-2xl bg-surface-container p-sm text-body-md outline-none focus:ring-2 focus:ring-primary"></div>
         </div>
-        <button onclick="go('welcome')" class="mt-md w-full bg-primary text-on-primary text-label-md rounded-full py-sm shadow-md active:scale-[0.98]">Join Customer Club</button>
+        <button id="club-btn" onclick="joinClub(this)" class="mt-md w-full bg-primary text-on-primary text-label-md rounded-full py-sm shadow-md active:scale-[0.98]">Join Customer Club</button>
       </div>
     </div>
     <button onclick="go('welcome')" class="text-label-md text-secondary hover:text-on-surface">Skip, just take me back</button>
   </section>
 </div>
 
-<!-- ============ STAFF DASHBOARD ============ -->
+<!-- ============ STAFF AREA (sign-in + dashboard) — open with /#staff ============ -->
 <div id="staff-app" class="w-full hidden">
-  <div class="max-w-[1100px] mx-auto px-md py-md">
-    <header class="flex items-center justify-between py-sm mb-md border-b border-surface-container-high">
+
+  <!-- Staff sign-in -->
+  <section id="staff-login" class="min-h-screen flex flex-col items-center justify-center px-container-margin py-xl w-full max-w-[440px] mx-auto">
+    <div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center mb-sm ambient-shadow">
+      <span class="font-headline text-xl font-bold text-white">H</span>
+    </div>
+    <span class="text-label-sm text-primary tracking-[0.15em] uppercase mb-1">Table Talk · Staff</span>
+    <h1 class="text-headline-md text-on-surface mb-md">Staff sign in</h1>
+    <form id="login-form" class="w-full bg-surface-container-lowest rounded-3xl p-md ambient-shadow flex flex-col gap-sm" onsubmit="staffLogin(event)">
+      <label for="login-email" class="text-label-md text-on-surface">Email</label>
+      <input id="login-email" type="email" required autocomplete="username" class="w-full bg-surface-container rounded-2xl px-sm py-3 text-body-md outline-none focus:ring-2 focus:ring-primary">
+      <label for="login-password" class="text-label-md text-on-surface">Password</label>
+      <input id="login-password" type="password" required autocomplete="current-password" class="w-full bg-surface-container rounded-2xl px-sm py-3 text-body-md outline-none focus:ring-2 focus:ring-primary">
+      <p id="login-error" class="text-label-sm text-error hidden"></p>
+      <button id="login-btn" type="submit" class="mt-xs w-full bg-primary text-on-primary text-label-md py-4 rounded-full shadow-lg hover:bg-primary-container transition-colors">Sign in</button>
+    </form>
+    <a href="#" class="mt-md text-label-sm text-secondary hover:text-on-surface">← Back to guest form</a>
+  </section>
+
+  <!-- Staff dashboard (shown only when signed in) -->
+  <div id="staff-dashboard" class="hidden max-w-[1100px] mx-auto px-md py-md">
+    <header class="flex items-center justify-between gap-sm py-sm mb-md border-b border-surface-container-high">
       <div class="flex items-center gap-2">
         <span class="material-symbols-outlined text-primary">restaurant</span>
         <span class="text-headline-md text-primary">Table Talk <span class="text-on-surface-variant font-normal text-body-md">· Hanna's on Main Staff</span></span>
       </div>
-      <div class="text-label-sm text-on-surface-variant">Live feed · updates as guests submit</div>
+      <div class="flex items-center gap-xs">
+        <button id="refresh-btn" onclick="loadSubmissions()" class="px-4 py-2 rounded-full bg-surface-container text-label-md text-on-surface hover:bg-surface-container-high transition-colors">Refresh</button>
+        <button onclick="staffLogout()" class="px-4 py-2 rounded-full text-label-md text-on-surface-variant hover:bg-surface-container transition-colors">Sign out</button>
+      </div>
     </header>
+    <div id="staff-notstaff" class="hidden bg-error-container text-on-error-container rounded-2xl p-md mb-md text-body-md">
+      You're signed in, but this account isn't set up as Table Talk staff yet. Ask the person who manages Table Talk to add it.
+    </div>
     <div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-md">
       <aside class="bg-surface-container-lowest rounded-3xl p-md ambient-shadow h-fit">
         <h3 class="text-label-sm text-on-surface-variant mb-1">Overview</h3>
-        <div id="staff-overall" class="text-4xl font-bold text-primary font-headline mb-1">4.8<span class="text-lg text-on-surface-variant font-normal"> / 5</span></div>
-        <p class="text-label-sm text-tertiary mb-md">Across all rated visits</p>
+        <div id="staff-overall" class="text-4xl font-bold text-primary font-headline mb-1">–<span class="text-lg text-on-surface-variant font-normal"> / 5</span></div>
+        <p id="staff-overall-note" class="text-label-sm text-tertiary mb-md"></p>
         <div class="flex flex-col gap-sm" id="staff-category-bars"></div>
       </aside>
       <main class="flex flex-col gap-sm">
@@ -332,208 +367,429 @@
           <h2 class="text-headline-md text-on-surface">Recent Feedback</h2>
           <span id="staff-count" class="text-label-sm text-on-surface-variant"></span>
         </div>
+        <p class="text-label-sm text-on-surface-variant">Tap a card to reply. Tap Refresh to see new submissions.</p>
         <div id="staff-feed" class="flex flex-col gap-sm"></div>
       </main>
     </div>
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+/* ---------- Supabase connection ----------
+   The URL and publishable key are meant to sit in front-end code. Security comes from the
+   database rules (RLS) in Supabase, not from hiding these two values.
+   NEVER put the secret / service_role key in this file. */
+const SUPABASE_URL = "https://jhyqbesokmfsazyjtwjq.supabase.co";
+const SUPABASE_KEY = "sb_publishable_AoPpQkCPg73068NokqiH6A_FAuu4NzC";
+const sb = (window.supabase && window.supabase.createClient)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+  : null;
+
 /* ---------- state ---------- */
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby43kAbwAcScQqM1qhl_iD-eSx_uNA_GsJWPR6vk55x3a_d6N7znB4F8QGEZ60NelEpVg/exec";
-function submitToBackend(sub){
-  fetch(SCRIPT_URL, {
-    method: "POST",
-    mode: "no-cors",
-    body: JSON.stringify({
-      type: sub.type || "",
-      details: sub.text || "",
-      server: sub.server || "",
-      rating: sub.rating || "",
-      contact: sub.contact || "",
-      urgent: sub.type === "issue"
-    })
-  });
-}
-const categories = ["Food Quality","Menu Variety","Service","Atmosphere","Cleanliness","Overall Experience"];
-let currentRatings = {};
-
-let submissions = [
-  {type:"compliment", name:"Sarah Jenkins", table:"Table 12", time:"Today, 2:30 PM", text:"Absolutely phenomenal experience. Our server was incredibly knowledgeable about the wine pairings.", rating:5},
-  {type:"issue", name:"Marcus T.", table:"Table 4", time:"Yesterday, 8:15 PM", text:"Waited nearly 45 minutes for entrees, and the steak came medium-well instead of medium-rare.", rating:2},
-  {type:"rating", name:"Walk-in guest", table:"Table 7", time:"Yesterday, 6:40 PM", text:"Recommends us to friends. Food Quality 5, Service 4, Atmosphere 5.", rating:5},
-  {type:"suggestion", name:"Priya K.", table:"Table 9", time:"2 days ago", text:"Would love a few more vegan small plates on the shared-plates menu.", rating:null}
+const categories = [
+  {label:"Food Quality",       short:"Food",        col:"rating_food"},
+  {label:"Menu Variety",       short:"Menu",        col:"rating_menu"},
+  {label:"Service",            short:"Service",     col:"rating_service"},
+  {label:"Atmosphere",         short:"Atmosphere",  col:"rating_atmosphere"},
+  {label:"Cleanliness",        short:"Cleanliness", col:"rating_cleanliness"},
+  {label:"Overall Experience", short:"Overall",     col:"rating_overall"}
 ];
+let currentRatings = [0,0,0,0,0,0];
+let currentSeverity = null;
+let sending = false;
+let submissions = [];
 
-/* ---------- nav ---------- */
+/* ---------- small helpers ---------- */
+function byId(id){ return document.getElementById(id); }
+// Escape anything a guest typed before it goes into the staff page.
+function esc(v){
+  return String(v == null ? "" : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+// Trim a value; return null if empty (so the database stores a clean NULL), and cap its length.
+function clip(v, max){
+  v = (v == null ? "" : String(v)).trim();
+  return v ? v.slice(0, max) : null;
+}
+let toastTimer;
+function toast(msg){
+  const t = byId('toast');
+  t.textContent = msg;
+  t.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.add('hidden'), 4000);
+}
+
+/* ---------- navigation ---------- */
 function go(screen){
-  document.querySelectorAll('#guest-app .screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+screen).classList.add('active');
-  if(screen==='rate') buildRatingRows();
-  window.scrollTo({top:0,behavior:'instant'});
+  document.querySelectorAll('#guest-app .screen').forEach(s => s.classList.remove('active'));
+  byId('screen-'+screen).classList.add('active');
+  if(screen === 'rate') buildRatingRows();
+  window.scrollTo({top:0, behavior:'instant'});
 }
-function setMode(mode){
-  const guest = document.getElementById('guest-app');
-  const staff = document.getElementById('staff-app');
-  document.getElementById('tab-guest').classList.toggle('bg-primary', mode==='guest');
-  document.getElementById('tab-guest').classList.toggle('text-white', mode==='guest');
-  document.getElementById('tab-staff').classList.toggle('bg-primary', mode==='staff');
-  document.getElementById('tab-staff').classList.toggle('text-white', mode==='staff');
-  if(mode==='guest'){ guest.classList.remove('hidden'); staff.classList.add('hidden'); }
-  else { guest.classList.add('hidden'); staff.classList.remove('hidden'); loadFromSheet(); }
+// Guests see the feedback app. Staff open the same address with #staff on the end.
+function route(){
+  const staff = location.hash === '#staff';
+  byId('guest-app').classList.toggle('hidden', staff);
+  byId('staff-app').classList.toggle('hidden', !staff);
+  if(staff) showStaffState();
 }
-
-function loadFromSheet(){
-  renderStaff(); // show current data immediately while fetching
-  fetch(SCRIPT_URL)
-    .then(res => res.json())
-    .then(rows => {
-      submissions = rows.map(r => ({
-        type: r.type,
-        name: "Guest submission",
-        table: "—",
-        time: new Date(r.timestamp).toLocaleString(),
-        text: r.details,
-        rating: r.rating ? Number(r.rating) : null
-      }));
-      renderStaff();
-    })
-    .catch(err => console.log("Could not load sheet data:", err));
-}
+window.addEventListener('hashchange', route);
 
 /* ---------- rating stars ---------- */
 function buildRatingRows(){
-  const wrap = document.getElementById('rating-rows');
+  const wrap = byId('rating-rows');
   wrap.innerHTML = '';
-  currentRatings = {};
-  categories.forEach((cat,i)=>{
-    currentRatings[cat] = 0;
+  currentRatings = categories.map(() => 0);
+  categories.forEach((cat, i) => {
     const row = document.createElement('div');
     row.className = "flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-surface-container-highest pb-4 last:border-0 last:pb-0";
-    row.innerHTML = `<span class="text-label-md text-on-surface">${cat}</span>
-      <div class="flex gap-1" data-cat="${cat}">
-        ${[1,2,3,4,5].map(n=>`<button class="star-btn" data-n="${n}" onclick="setStar('${cat}',${n},this)"><span class="material-symbols-outlined text-3xl">star</span></button>`).join('')}
+    row.innerHTML = `<span class="text-label-md text-on-surface">${cat.label}</span>
+      <div class="flex gap-1" data-cat="${i}">
+        ${[1,2,3,4,5].map(n => `<button type="button" class="star-btn" data-n="${n}" onclick="setStar(${i},${n},this)" aria-label="${cat.label}: ${n} of 5"><span class="material-symbols-outlined text-3xl">star</span></button>`).join('')}
       </div>`;
     wrap.appendChild(row);
   });
 }
-function setStar(cat,n,el){
-  currentRatings[cat] = n;
+function setStar(i, n, el){
+  currentRatings[i] = n;
   const group = el.closest('[data-cat]');
-  group.querySelectorAll('.star-btn').forEach((b,i)=> b.classList.toggle('active', i < n));
+  group.querySelectorAll('.star-btn').forEach((b, idx) => b.classList.toggle('active', idx < n));
 }
 
-/* ---------- chips / toggles ---------- */
-document.addEventListener('click', e=>{
+/* ---------- chips / toggles / severity ---------- */
+document.addEventListener('click', e => {
   const chip = e.target.closest('[data-chip]');
-  if(chip){
-    // multi-select for issue chips, multi-select for compliment chips
-    chip.classList.toggle('selected');
-  }
+  if(chip) chip.classList.toggle('selected');   // multi-select
 });
-function toggleSwitch(el){ el.classList.toggle('on'); }
+function toggleSwitch(el){
+  el.classList.toggle('on');
+  el.dataset.touched = '1';   // lets us tell "never touched" apart from "answered No"
+}
 function toggleReply(el, fieldsId){
   el.classList.toggle('on');
-  document.getElementById(fieldsId).style.display = el.classList.contains('on') ? 'flex' : 'none';
+  byId(fieldsId).style.display = el.classList.contains('on') ? 'flex' : 'none';
+}
+function setSeverity(n){
+  currentSeverity = (currentSeverity === n) ? null : n;   // tap again to clear
+  document.querySelectorAll('#severity-pills .chip').forEach(b => {
+    b.classList.toggle('selected', Number(b.dataset.sev) === currentSeverity);
+  });
+}
+function selectedChipText(containerId){
+  // Read only the visible label, not the icon's name (icons are text like "restaurant_menu" inside the button)
+  return Array.from(document.querySelectorAll('#'+containerId+' .chip.selected')).map(b => {
+    const copy = b.cloneNode(true);
+    copy.querySelectorAll('.material-symbols-outlined').forEach(i => i.remove());
+    return copy.textContent.trim();
+  });
+}
+function recommendValue(){
+  const t = byId('rate-recommend');
+  return t.dataset.touched ? t.classList.contains('on') : null;
+}
+function resetForms(){
+  document.querySelectorAll('#guest-app textarea, #guest-app input, #guest-app select').forEach(el => { el.value = ''; });
+  document.querySelectorAll('#guest-app .chip.selected').forEach(c => c.classList.remove('selected'));
+  currentSeverity = null;
+  const rec = byId('rate-recommend');
+  rec.classList.remove('on');
+  delete rec.dataset.touched;
+  byId('compliment-reply-toggle').classList.add('on');
+  byId('compliment-reply-fields').style.display = 'flex';
 }
 
-/* ---------- submit handlers ---------- */
-function selectedChipText(containerId){
-  return Array.from(document.querySelectorAll('#'+containerId+' .chip.selected')).map(b=>b.textContent.trim());
-}
-function pushSubmission(sub){
-  submissions.unshift(Object.assign({time:"Just now"}, sub));
-  submitToBackend(sub);
-}
-function submitRating(){
-  const avg = Object.values(currentRatings).filter(v=>v>0);
-  const avgScore = avg.length ? Math.round(avg.reduce((a,b)=>a+b,0)/avg.length) : null;
-  const server = document.getElementById('server-select').value || "";
-  const food = document.getElementById('rate-food').value || "";
-  pushSubmission({type:"rating", name:"Guest submission", table:"—", server:server, text:`Rated visit — ${categories.map(c=>`${c}: ${currentRatings[c]||'–'}`).join(', ')}.${food? " Food: "+food:""}`, rating: avgScore});
-  showThankYou("Thanks — your ratings just landed on our dashboard.","The whole team reviews these every day.");
-}
-function submitCompliment(){
-  const text = document.getElementById('compliment-text').value || "(no message, just chips selected)";
-  const chips = selectedChipText('compliment-chips');
-  const contact = document.getElementById('compliment-contact').value || "";
-  pushSubmission({type:"compliment", name:"Guest submission", table:"—", contact:contact, text: text + (chips.length? " · "+chips.join(", "):"")});
-  showThankYou("Thanks! We just sent this straight to the kitchen 👨‍🍳","If you asked for a reply, the chef (or a manager) will follow up personally.");
-}
-function submitIssue(){
-  const text = document.getElementById('issue-text').value || "(no details provided)";
-  const tags = selectedChipText('issue-chips');
-  const contact = document.getElementById('issue-contact').value || "";
-  pushSubmission({type:"issue", name:"Guest submission", table:"—", contact:contact, text: (tags.length? "["+tags.join(", ")+"] ":"") + text, rating:2});
-  showThankYou("Got it — a manager has been alerted right now.","We take this seriously. Someone will follow up as soon as possible.");
-}
-function submitSuggestion(){
-  const text = document.getElementById('suggest-text').value || "(no details provided)";
-  const contact = document.getElementById('suggest-contact').value || "";
-  pushSubmission({type:"suggestion", name:"Guest submission", table:"—", contact:contact, text});
-  showThankYou("Love it — your idea just reached the team.","Great ideas often come from guests. Thank you for sharing.");
-}
-function quickNote(){
-  const msg = prompt("Quick note to the team:");
-  if(msg){
-    pushSubmission({type:"suggestion", name:"Guest submission", table:"—", text: msg});
-    showThankYou("Got it — thanks for the quick note!","We read every one of these.");
+/* ---------- sending to Supabase ----------
+   Guests can only INSERT. We never chain .select() onto a guest insert,
+   because guests have no permission to read rows back. */
+async function insertRow(table, row, btn){
+  if(!sb){ toast("Can't reach the server right now. Please check your connection and try again."); return false; }
+  if(sending) return false;
+  sending = true;
+  if(btn){ btn.disabled = true; btn.classList.add('opacity-60'); }
+  let error = null;
+  try {
+    ({ error } = await sb.from(table).insert(row));
+  } catch(e){ error = e; }
+  sending = false;
+  if(btn){ btn.disabled = false; btn.classList.remove('opacity-60'); }
+  if(error){
+    console.error("Insert failed:", error);
+    toast("Sorry, that didn't go through. Please try again.");
+    return false;
   }
+  return true;
 }
 function showThankYou(title, sub){
-  document.getElementById('thankyou-title').textContent = title;
-  document.getElementById('thankyou-sub').textContent = sub;
+  resetForms();
+  byId('thankyou-title').textContent = title;
+  byId('thankyou-sub').textContent = sub;
   go('thankyou');
 }
 
-/* ---------- staff dashboard render ---------- */
+/* ---------- guest submit handlers ---------- */
+async function submitRating(btn){
+  if(!currentRatings.some(n => n > 0)){ toast("Tap at least one star rating first."); return; }
+  const row = {
+    type: "rating",
+    server: clip(byId('server-select').value, 100),
+    food_item: clip(byId('rate-food').value, 200),
+    recommend: recommendValue()
+  };
+  categories.forEach((c, i) => { row[c.col] = currentRatings[i] || null; });
+  if(await insertRow('submissions', row, btn)){
+    showThankYou("Thanks — your ratings just landed on our dashboard.", "The whole team reviews these every day.");
+  }
+}
+async function submitCompliment(btn){
+  const text = byId('compliment-text').value.trim();
+  const chips = selectedChipText('compliment-chips');
+  if(!text && !chips.length){ toast("Write a few words or pick a tag first."); return; }
+  const wantsReply = byId('compliment-reply-toggle').classList.contains('on');
+  const row = {
+    type: "compliment",
+    details: clip([text, chips.join(", ")].filter(Boolean).join(" · "), 2000),
+    contact: wantsReply ? clip(byId('compliment-contact').value, 200) : null
+  };
+  if(await insertRow('submissions', row, btn)){
+    showThankYou("Thanks! We just sent this straight to the kitchen 👨‍🍳", "If you asked for a reply, the chef (or a manager) will follow up personally.");
+  }
+}
+async function submitIssue(btn){
+  const text = byId('issue-text').value.trim();
+  const tags = selectedChipText('issue-chips');
+  if(!text && !tags.length){ toast("Please tell us a little about what happened."); return; }
+  const row = {
+    type: "issue",
+    details: clip([tags.length ? "["+tags.join(", ")+"]" : "", text].filter(Boolean).join(" "), 2000),
+    contact: clip(byId('issue-contact').value, 200),
+    severity: currentSeverity,
+    urgent: true
+  };
+  if(await insertRow('submissions', row, btn)){
+    showThankYou("Got it — a manager has been alerted right now.", "We take this seriously. Someone will follow up as soon as possible.");
+  }
+}
+async function submitSuggestion(btn){
+  const text = byId('suggest-text').value.trim();
+  if(!text){ toast("Share your idea in a few words first."); return; }
+  const row = {
+    type: "suggestion",
+    details: clip(text, 2000),
+    contact: clip(byId('suggest-contact').value, 200)
+  };
+  if(await insertRow('submissions', row, btn)){
+    showThankYou("Love it — your idea just reached the team.", "Great ideas often come from guests. Thank you for sharing.");
+  }
+}
+async function quickNote(){
+  const msg = prompt("Quick note to the team:");
+  if(!msg || !msg.trim()) return;
+  if(await insertRow('submissions', {type: "suggestion", details: clip(msg, 2000)}, null)){
+    showThankYou("Got it — thanks for the quick note!", "We read every one of these.");
+  }
+}
+async function joinClub(btn){
+  const name = clip(byId('club-name').value, 100);
+  const email = clip(byId('club-email').value, 200);
+  const cell = clip(byId('club-cell').value, 30);
+  const birthday = byId('club-birthday').value || null;   // empty date must be NULL, not ""
+  if(!name){ toast("Please add your name."); return; }
+  if(!email && !cell){ toast("Add an email or cell number so we can reach you."); return; }
+  if(email && !/^\S+@\S+\.\S+$/.test(email)){ toast("That email doesn't look right."); return; }
+  if(await insertRow('club_members', {name, email, cell, birthday}, btn)){
+    ['club-name','club-email','club-cell','club-birthday'].forEach(id => { byId(id).value = ''; });
+    toast("Welcome to the Customer Club! 🎉");
+    go('welcome');
+  }
+}
+
+/* ---------- staff: sign in / out ---------- */
+async function showStaffState(){
+  if(!sb) return;
+  const { data } = await sb.auth.getSession();
+  const signedIn = !!(data && data.session);
+  byId('staff-login').classList.toggle('hidden', signedIn);
+  byId('staff-dashboard').classList.toggle('hidden', !signedIn);
+  if(signedIn) loadSubmissions();
+}
+async function staffLogin(e){
+  e.preventDefault();
+  const btn = byId('login-btn'), err = byId('login-error');
+  err.classList.add('hidden');
+  if(!sb){ err.textContent = "Can't reach the server right now. Check your connection."; err.classList.remove('hidden'); return; }
+  btn.disabled = true; btn.textContent = "Signing in…";
+  const { error } = await sb.auth.signInWithPassword({
+    email: byId('login-email').value.trim(),
+    password: byId('login-password').value
+  });
+  btn.disabled = false; btn.textContent = "Sign in";
+  if(error){
+    err.textContent = /confirm/i.test(error.message || "") ? error.message : "That email or password didn't work.";
+    err.classList.remove('hidden');
+    return;
+  }
+  byId('login-password').value = '';
+  showStaffState();
+}
+async function staffLogout(){
+  if(sb) await sb.auth.signOut();
+  submissions = [];
+  byId('login-email').value = '';
+  byId('login-password').value = '';
+  showStaffState();
+}
+
+/* ---------- staff: load + render ---------- */
+async function loadSubmissions(){
+  if(!sb) return;
+  const btn = byId('refresh-btn');
+  btn.disabled = true; btn.textContent = "Loading…";
+  const { data: isStaff, error: staffErr } = await sb.rpc('is_staff');
+  if(staffErr){
+    btn.disabled = false; btn.textContent = "Refresh";
+    toast("Couldn't check your account. Try signing out and back in.");
+    return;
+  }
+  if(isStaff !== true){
+    byId('staff-notstaff').classList.remove('hidden');
+    submissions = [];
+    renderStaff();
+    btn.disabled = false; btn.textContent = "Refresh";
+    return;
+  }
+  byId('staff-notstaff').classList.add('hidden');
+  const { data, error } = await sb.from('submissions').select('*').order('created_at', {ascending:false}).limit(500);
+  btn.disabled = false; btn.textContent = "Refresh";
+  if(error){ toast("Couldn't load feedback. Tap Refresh to try again."); return; }
+  submissions = data || [];
+  renderStaff();
+}
+
 const typeMeta = {
-  compliment: {label:"Compliment", cls:"type-pill-compliment"},
-  issue: {label:"Issue", cls:"type-pill-issue"},
-  suggestion: {label:"Suggestion", cls:"type-pill-suggestion"},
-  rating: {label:"Rating", cls:"type-pill-rating"}
+  compliment: {label:"Compliment", cls:"type-pill-compliment", icon:"local_dining"},
+  issue:      {label:"Issue",      cls:"type-pill-issue",      icon:"flag"},
+  suggestion: {label:"Suggestion", cls:"type-pill-suggestion", icon:"lightbulb"},
+  rating:     {label:"Rating",     cls:"type-pill-rating",     icon:"star"}
 };
+function fmtDate(iso){
+  const d = new Date(iso);
+  return isNaN(d) ? "" : d.toLocaleString([], {dateStyle:"medium", timeStyle:"short"});
+}
+function avgOf(col){
+  const v = submissions.map(s => s[col]).filter(n => typeof n === "number");
+  return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+}
+function starsHtml(n){
+  return `<div class="flex gap-1 mt-2">${[1,2,3,4,5].map(i => `<span class="material-symbols-outlined text-lg ${i <= n ? 'text-primary' : 'text-surface-container-highest'}" style="font-variation-settings:'FILL' 1">star</span>`).join('')}</div>`;
+}
 function renderStaff(){
-  const rated = submissions.filter(s=>s.rating);
-  const avg = rated.length ? (rated.reduce((a,b)=>a+b.rating,0)/rated.length).toFixed(1) : "–";
-  document.getElementById('staff-overall').innerHTML = `${avg}<span class="text-lg text-on-surface-variant font-normal"> / 5</span>`;
+  const overall = avgOf('rating_overall');
+  const ratedCount = submissions.filter(s => s.type === 'rating').length;
+  byId('staff-overall').innerHTML = `${overall == null ? '–' : overall.toFixed(1)}<span class="text-lg text-on-surface-variant font-normal"> / 5</span>`;
+  byId('staff-overall-note').textContent = ratedCount ? `Overall rating across ${ratedCount} rated visit${ratedCount === 1 ? '' : 's'}` : "No rated visits yet";
 
-  const bars = [["Food Quality",4.9],["Service",4.7],["Ambiance",4.8]];
-  document.getElementById('staff-category-bars').innerHTML = bars.map(([label,val])=>`
-    <div>
-      <div class="flex justify-between text-label-md"><span>${label}</span><span class="text-primary font-semibold">${val}</span></div>
-      <div class="w-full h-2 bg-surface-container-high rounded-full mt-1"><div class="h-2 bg-primary rounded-full" style="width:${val/5*100}%"></div></div>
-    </div>`).join('');
-
-  document.getElementById('staff-count').textContent = submissions.length + " submissions";
-  document.getElementById('staff-feed').innerHTML = submissions.map((s,idx)=>{
-    const meta = typeMeta[s.type] || {label: s.type || "Other", cls: "type-pill-suggestion"};
+  byId('staff-category-bars').innerHTML = categories.filter(c => c.col !== 'rating_overall').map(c => {
+    const val = avgOf(c.col);
     return `
-    <div class="bg-surface-container-lowest rounded-3xl p-md ambient-shadow border border-surface-container-high cursor-pointer" onclick="document.getElementById('reply-${idx}').classList.toggle('hidden')">
-      <div class="flex items-start justify-between gap-sm">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-semibold">${(s.name||"G")[0]}</div>
-          <div>
-            <div class="text-label-md text-on-surface">${s.name}</div>
-            <div class="text-label-sm text-on-surface-variant">${s.time} · ${s.table}</div>
-          </div>
-        </div>
-        <span class="px-3 py-1 rounded-full text-label-sm ${meta.cls}">${meta.label}</span>
-      </div>
-      ${s.rating ? `<div class="flex gap-1 mt-2">${[1,2,3,4,5].map(n=>`<span class="material-symbols-outlined text-lg ${n<=s.rating?'text-primary':'text-surface-container-highest'}" style="font-variation-settings:'FILL' 1">star</span>`).join('')}</div>` : ''}
-      <p class="text-body-md text-on-surface mt-2">"${s.text}"</p>
-      <div id="reply-${idx}" class="hidden border-t border-surface-container pt-4 mt-4" onclick="event.stopPropagation()">
-        <label class="text-label-sm text-on-surface-variant mb-1 block">Reply as staff</label>
-        <textarea class="w-full bg-surface-container-low border border-surface-container-high rounded-2xl p-3 text-body-md focus:ring-2 focus:ring-primary resize-none" rows="2" placeholder="Draft a reply..."></textarea>
-        <button class="mt-2 bg-primary text-on-primary px-5 py-2 rounded-full text-label-md">Send Reply</button>
-      </div>
+    <div>
+      <div class="flex justify-between text-label-md"><span>${esc(c.label)}</span><span class="text-primary font-semibold">${val == null ? '–' : val.toFixed(1)}</span></div>
+      <div class="w-full h-2 bg-surface-container-high rounded-full mt-1"><div class="h-2 bg-primary rounded-full" style="width:${val == null ? 0 : val / 5 * 100}%"></div></div>
     </div>`;
   }).join('');
+
+  byId('staff-count').textContent = submissions.length + (submissions.length === 1 ? " submission" : " submissions");
+  byId('staff-feed').innerHTML = submissions.length
+    ? submissions.map(cardHtml).join('')
+    : `<div class="bg-surface-container-lowest rounded-3xl p-md ambient-shadow text-body-md text-on-surface-variant">No feedback yet. New submissions will show up here.</div>`;
+}
+function cardHtml(s){
+  const meta = typeMeta[s.type] || {label: s.type || "Other", cls: "type-pill-suggestion", icon: "chat"};   // unknown type never breaks the feed
+  const id = esc(s.id);
+  const needsAttention = s.urgent && !s.staff_reply;
+  const catPills = categories.filter(c => typeof s[c.col] === "number").map(c =>
+    `<span class="px-2 py-0.5 rounded-full bg-surface-container text-label-sm text-on-surface-variant">${esc(c.short)} ${esc(s[c.col])}</span>`).join('');
+  const tags = [];
+  if(s.urgent) tags.push(`<span class="px-2 py-0.5 rounded-full text-label-sm type-pill-issue">Urgent</span>`);
+  if(s.severity != null) tags.push(`<span class="px-2 py-0.5 rounded-full text-label-sm type-pill-issue">Severity ${esc(s.severity)}/5</span>`);
+  if(s.recommend === true) tags.push(`<span class="px-2 py-0.5 rounded-full text-label-sm type-pill-compliment">Would recommend</span>`);
+  if(s.recommend === false) tags.push(`<span class="px-2 py-0.5 rounded-full text-label-sm type-pill-issue">Wouldn't recommend</span>`);
+  const isEmail = s.contact && s.contact.includes('@');
+  return `
+  <div class="bg-surface-container-lowest rounded-3xl p-md ambient-shadow cursor-pointer ${needsAttention ? 'border-2 border-error' : 'border border-surface-container-high'}" onclick="toggleReplyPanel('${id}')">
+    <div class="flex items-start justify-between gap-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary"><span class="material-symbols-outlined">${meta.icon}</span></div>
+        <div>
+          <div class="text-label-md text-on-surface">Guest feedback</div>
+          <div class="text-label-sm text-on-surface-variant">${esc(fmtDate(s.created_at))}${s.server ? ' · Server: ' + esc(s.server) : ''}</div>
+        </div>
+      </div>
+      <div class="flex flex-col items-end gap-1">
+        <span class="px-3 py-1 rounded-full text-label-sm ${meta.cls}">${esc(meta.label)}</span>
+        ${s.staff_reply ? `<span class="text-label-sm text-tertiary">✓ Replied</span>` : ''}
+      </div>
+    </div>
+    ${typeof s.rating_overall === "number" ? starsHtml(s.rating_overall) : ''}
+    ${catPills ? `<div class="flex flex-wrap gap-1 mt-2">${catPills}</div>` : ''}
+    ${s.details ? `<p class="text-body-md text-on-surface mt-2 whitespace-pre-wrap break-words">“${esc(s.details)}”</p>` : ''}
+    ${s.food_item ? `<p class="text-label-sm text-on-surface-variant mt-2">Ate: ${esc(s.food_item)}</p>` : ''}
+    ${tags.length ? `<div class="flex flex-wrap gap-1 mt-2">${tags.join('')}</div>` : ''}
+    ${s.contact ? `<p class="text-label-sm text-on-surface-variant mt-2">Contact: <span class="text-on-surface">${esc(s.contact)}</span></p>` : '<p class="text-label-sm text-on-surface-variant mt-2">No contact info left</p>'}
+    ${s.staff_reply ? `<div class="mt-3 rounded-2xl bg-tertiary-fixed p-3 text-body-md text-on-surface whitespace-pre-wrap break-words"><span class="block text-label-sm text-on-surface-variant mb-1">Your reply · ${esc(fmtDate(s.replied_at))}</span>${esc(s.staff_reply)}</div>` : ''}
+    <div id="reply-${id}" class="hidden border-t border-surface-container pt-4 mt-4" onclick="event.stopPropagation()">
+      <label class="text-label-sm text-on-surface-variant mb-1 block" for="reply-text-${id}">${s.staff_reply ? 'Edit your reply' : 'Reply as staff'}</label>
+      <textarea id="reply-text-${id}" maxlength="2000" class="w-full bg-surface-container-low border border-surface-container-high rounded-2xl p-3 text-body-md focus:ring-2 focus:ring-primary resize-none" rows="3" placeholder="Draft a reply...">${esc(s.staff_reply || '')}</textarea>
+      <div class="flex flex-wrap gap-xs mt-2">
+        <button id="reply-btn-${id}" onclick="sendReply('${id}')" class="bg-primary text-on-primary px-5 py-2 rounded-full text-label-md">${s.staff_reply ? 'Update Reply' : 'Save Reply'}</button>
+        ${isEmail ? `<button onclick="emailGuest('${id}')" class="bg-surface-container text-on-surface px-5 py-2 rounded-full text-label-md">Email this guest</button>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+function toggleReplyPanel(id){
+  const p = byId('reply-' + id);
+  if(p) p.classList.toggle('hidden');
+}
+
+/* ---------- staff: save a reply ---------- */
+async function sendReply(id){
+  const text = byId('reply-text-' + id).value.trim();
+  if(!text){ toast("Write a reply first."); return; }
+  const btn = byId('reply-btn-' + id);
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = "Saving…";
+  const now = new Date().toISOString();
+  // .select('id') lets us confirm a row was really updated (a blocked update would otherwise fail silently)
+  const { data, error } = await sb.from('submissions')
+    .update({ staff_reply: text.slice(0, 2000), replied_at: now })
+    .eq('id', id)
+    .select('id');
+  if(error || !data || !data.length){
+    console.error("Reply failed:", error);
+    btn.disabled = false; btn.textContent = label;
+    toast("Couldn't save the reply. Please try again.");
+    return;
+  }
+  const s = submissions.find(x => x.id === id);
+  if(s){ s.staff_reply = text.slice(0, 2000); s.replied_at = now; }
+  toast("Reply saved.");
+  renderStaff();
+}
+// Until automatic delivery is built, this opens the staff member's email app with the reply filled in.
+function emailGuest(id){
+  const s = submissions.find(x => x.id === id);
+  if(!s || !s.contact) return;
+  const text = byId('reply-text-' + id).value.trim() || s.staff_reply || "";
+  if(!text){ toast("Write a reply first."); return; }
+  window.location.href = "mailto:" + encodeURIComponent(s.contact.trim())
+    + "?subject=" + encodeURIComponent("Thanks for your feedback at Hanna's on Main")
+    + "&body=" + encodeURIComponent(text);
 }
 
 /* ---------- init ---------- */
-setMode('guest');
 buildRatingRows();
+route();
 </script>
 </body>
 </html>
