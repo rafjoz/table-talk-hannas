@@ -116,7 +116,7 @@
       </button>
     </div>
     <button onclick="quickNote()" class="text-label-md text-outline hover:text-primary transition-colors underline underline-offset-4">Want to skip the questions? Tap here</button>
-    <a href="#staff" class="mt-lg text-label-sm text-outline/60 hover:text-primary transition-colors">Staff login</a>
+    <a href="#login" class="mt-lg text-label-sm text-outline/60 hover:text-primary transition-colors">Login</a>
   </section>
 
   <!-- RATE YOUR VISIT -->
@@ -327,8 +327,8 @@
     <div class="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center mb-sm ambient-shadow">
       <img src="logo.png" alt="Hanna's on Main logo" class="w-full h-full object-cover">
     </div>
-    <span class="text-label-sm text-primary tracking-[0.15em] uppercase mb-1">Table Talk · Staff</span>
-    <h1 class="text-headline-md text-on-surface mb-md">Staff sign in</h1>
+    <span class="text-label-sm text-primary tracking-[0.15em] uppercase mb-1">Table Talk · Hanna's on Main</span>
+    <h1 class="text-headline-md text-on-surface mb-md">Sign in</h1>
     <form id="login-form" class="w-full bg-surface-container-lowest rounded-3xl p-md ambient-shadow flex flex-col gap-sm" onsubmit="staffLogin(event)">
       <label for="login-email" class="text-label-md text-on-surface">Email</label>
       <input id="login-email" type="email" required autocomplete="username" class="w-full bg-surface-container rounded-2xl px-sm py-3 text-body-md outline-none focus:ring-2 focus:ring-primary">
@@ -345,7 +345,7 @@
     <header class="flex items-center justify-between gap-sm py-sm mb-md border-b border-surface-container-high">
       <div class="flex items-center gap-2">
         <span class="material-symbols-outlined text-primary">restaurant</span>
-        <span class="text-headline-md text-primary">Table Talk <span class="text-on-surface-variant font-normal text-body-md">· Hanna's on Main Staff</span></span>
+        <span class="text-headline-md text-primary">Table Talk <span class="text-on-surface-variant font-normal text-body-md">· Hanna's on Main</span></span>
       </div>
       <div class="flex items-center gap-xs">
         <button id="refresh-btn" onclick="loadSubmissions()" class="px-4 py-2 rounded-full bg-surface-container text-label-md text-on-surface hover:bg-surface-container-high transition-colors">Refresh</button>
@@ -353,7 +353,7 @@
       </div>
     </header>
     <div id="staff-notstaff" class="hidden bg-error-container text-on-error-container rounded-2xl p-md mb-md text-body-md">
-      You're signed in, but this account isn't set up as Table Talk staff yet. Ask the person who manages Table Talk to add it.
+      You're signed in, but this account doesn't have access right now. Ask the owner or manager to approve it..
     </div>
     <div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-md">
       <aside class="bg-surface-container-lowest rounded-3xl p-md ambient-shadow h-fit">
@@ -374,7 +374,7 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="team-access.js"></script>
 <script>
 /* ---------- Supabase connection ----------
    The URL and publishable key are meant to sit in front-end code. Security comes from the
@@ -429,7 +429,7 @@ function go(screen){
 }
 // Guests see the feedback app. Staff open the same address with #staff on the end.
 function route(){
-  const staff = location.hash === '#staff';
+  const staff = location.hash === '#staff' || location.hash === '#login';
   byId('guest-app').classList.toggle('hidden', staff);
   byId('staff-app').classList.toggle('hidden', !staff);
   if(staff) showStaffState();
@@ -610,8 +610,8 @@ async function showStaffState(){
   const { data } = await sb.auth.getSession();
   const signedIn = !!(data && data.session);
   byId('staff-login').classList.toggle('hidden', signedIn);
-  byId('staff-dashboard').classList.toggle('hidden', !signedIn);
-  if(signedIn) loadSubmissions();
+  byId('staff-dashboard').classList.add('hidden'); byId('staff-pending').classList.add('hidden');
+  if(signedIn) enterStaffArea(data.session);
 }
 async function staffLogin(e){
   e.preventDefault();
