@@ -115,7 +115,7 @@
         <span class="text-label-md text-on-surface">Suggest an Idea</span>
       </button>
     </div>
-    <button onclick="quickNote()" class="text-label-md text-outline hover:text-primary transition-colors underline underline-offset-4">Want to skip the questions? Tap here</button>
+    <div data-social class="flex flex-col items-center gap-xs"></div>
     <a href="#login" class="mt-lg text-label-sm text-outline/60 hover:text-primary transition-colors">Login</a>
   </section>
 
@@ -134,14 +134,14 @@
       <section class="bg-surface-container-lowest rounded-3xl p-md ambient-shadow flex flex-col gap-md" id="rating-rows"></section>
       <section class="flex flex-col gap-sm">
         <div>
-          <label class="block text-label-md text-on-surface mb-xs ml-4">Who was your server?</label>
+          <label class="block text-label-md text-on-surface mb-xs ml-4">Who was your server? (optional)</label>
           <div class="relative">
             <span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-secondary">person</span>
-            <select id="server-select" class="w-full bg-surface-container rounded-2xl border-none pl-12 pr-4 py-4 text-body-md focus:ring-2 focus:ring-primary appearance-none cursor-pointer">
-              <option value="">Select server or skip</option>
-              <option>Sarah M.</option><option>David L.</option><option>Elena V.</option><option>Michael T.</option><option>I don't remember</option>
-            </select>
-            <span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-secondary pointer-events-none">expand_more</span>
+            <input id="server-select" type="text" maxlength="100" autocomplete="off" class="w-full bg-surface-container rounded-2xl border-none pl-12 pr-4 py-4 text-body-md focus:ring-2 focus:ring-primary" placeholder="Server's name, if you remember">
+              
+              
+            
+            
           </div>
         </div>
         <div>
@@ -315,7 +315,7 @@
         <button id="club-btn" onclick="joinClub(this)" class="mt-md w-full bg-primary text-on-primary text-label-md rounded-full py-sm shadow-md active:scale-[0.98]">Join Customer Club</button>
       </div>
     </div>
-    <button onclick="go('welcome')" class="text-label-md text-secondary hover:text-on-surface">Skip, just take me back</button>
+    <div data-social class="flex flex-col items-center gap-xs mb-md"></div><button onclick="go('welcome')" class="text-label-md text-secondary hover:text-on-surface">Skip, just take me back</button>
   </section>
 </div>
 
@@ -360,7 +360,7 @@
         <h3 class="text-label-sm text-on-surface-variant mb-1">Overview</h3>
         <div id="staff-overall" class="text-4xl font-bold text-primary font-headline mb-1">–<span class="text-lg text-on-surface-variant font-normal"> / 5</span></div>
         <p id="staff-overall-note" class="text-label-sm text-tertiary mb-md"></p>
-        <div class="flex flex-col gap-sm" id="staff-category-bars"></div>
+        <div class="flex flex-col gap-sm" id="staff-category-bars"></div><div class="mt-md pt-md border-t border-surface-container-high"><h3 class="text-label-sm text-on-surface-variant mb-xs">Export reports</h3><div class="flex flex-col gap-xs"><button type="button" onclick="exportFeedback(this)" class="w-full px-4 py-2 rounded-full bg-surface-container text-label-md text-on-surface hover:bg-surface-container-high transition-colors">Feedback (CSV)</button><button type="button" data-admin-only onclick="exportClub(this)" class="hidden w-full px-4 py-2 rounded-full bg-surface-container text-label-md text-on-surface hover:bg-surface-container-high transition-colors">Customer Club (CSV)</button><button type="button" data-admin-only onclick="exportTeam(this)" class="hidden w-full px-4 py-2 rounded-full bg-surface-container text-label-md text-on-surface hover:bg-surface-container-high transition-colors">Team list (CSV)</button></div><p class="text-label-sm text-on-surface-variant mt-xs">Downloads a file that opens in Excel or Google Sheets.</p></div>
       </aside>
       <main class="flex flex-col gap-sm">
         <div class="flex items-center justify-between">
@@ -752,7 +752,7 @@ function toggleReplyPanel(id){
   if(p) p.classList.toggle('hidden');
 }
 
-/* ---------- staff: save a reply ---------- */
+function csvCell(v){var s=v==null?'':String(v);var c=s.charCodeAt(0);if((c===61||c===43||c===45||c===64||c===9||c===13)&&!s.split('').every(function(ch){return '0123456789 ().-+'.indexOf(ch)>-1;})){s="'"+s;}return '"'+s.split('"').join('""')+'"';} function csvDate(iso){var d=new Date(iso);if(isNaN(d))return '';var p=function(n){return String(n).padStart(2,'0');};return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());} function csvStamp(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');} function downloadCsv(name,rows){var text=String.fromCharCode(65279)+rows.map(function(r){return r.map(csvCell).join(',');}).join(String.fromCharCode(13,10));var blob=new Blob([text],{type:'text/csv;charset=utf-8'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},2000);} async function fetchAllRows(table,cols,tie){var all=[],from=0,step=1000;while(true){var res=await sb.from(table).select(cols).order('created_at',{ascending:false}).order(tie,{ascending:false}).range(from,from+step-1);if(res.error)throw res.error;var rows=res.data||[];all=all.concat(rows);if(rows.length<step)break;from+=step;}return all;} async function runExport(btn,name,table,cols,tie,header,mapRow){if(!sb)return;var label=btn.textContent;btn.disabled=true;btn.textContent='Preparing...';try{var rows=await fetchAllRows(table,cols,tie);if(!rows.length){toast('Nothing to export yet.');}else{downloadCsv(name+'-'+csvStamp()+'.csv',[header].concat(rows.map(mapRow)));toast('Downloaded '+rows.length+(rows.length===1?' row':' rows')+'. Check your Downloads folder.');}}catch(e){console.error('Export failed:',e);toast("Couldn't create the export. Please try again.");}btn.disabled=false;btn.textContent=label;} function exportFeedback(btn){var header=['Date','Type','Urgent','Severity','Server','Food ordered'].concat(categories.map(function(c){return c.label;})).concat(['Would recommend','Comment','Guest contact','Staff reply','Replied at']);runExport(btn,'table-talk-feedback','submissions','*','id',header,function(s){var t=typeMeta[s.type]?typeMeta[s.type].label:(s.type||'Other');return [csvDate(s.created_at),t,s.urgent?'Yes':'No',s.severity,s.server,s.food_item].concat(categories.map(function(c){return s[c.col];})).concat([s.recommend===true?'Yes':(s.recommend===false?'No':''),s.details,s.contact,s.staff_reply,s.replied_at?csvDate(s.replied_at):'']);});} function exportClub(btn){runExport(btn,'table-talk-club-members','club_members','*','id',['Joined','Name','Email','Cell','Birthday'],function(m){return [csvDate(m.created_at),m.name,m.email,m.cell,m.birthday];});} function exportTeam(btn){runExport(btn,'table-talk-team','profiles','full_name, title, email, status, is_admin, created_at','user_id',['Signed up','Name','Title','Email','Status','Admin'],function(p){return [csvDate(p.created_at),p.full_name,p.title,p.email,p.status,p.is_admin?'Yes':'No'];});} /* ---------- staff: save a reply ---------- */
 async function sendReply(id){
   const text = byId('reply-text-' + id).value.trim();
   if(!text){ toast("Write a reply first."); return; }
@@ -787,7 +787,7 @@ function emailGuest(id){
     + "&body=" + encodeURIComponent(text);
 }
 
-/* ---------- init ---------- */
+const SOCIALS=[{name:'Instagram',url:'https://www.instagram.com/hannasonmain/',icon:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"></circle></svg>'},{name:'Facebook',url:'https://www.facebook.com/p/Hannas-on-Main-61570570199966/',icon:'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>'}]; function renderSocial(){const html='<span class="text-label-sm text-on-surface-variant">Follow us</span><div class="flex flex-wrap justify-center gap-xs">'+SOCIALS.map(function(s){return '<a href="'+s.url+'" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant text-label-md text-on-surface-variant hover:text-primary hover:border-primary transition-colors">'+s.icon+esc(s.name)+'</a>';}).join('')+'</div>';document.querySelectorAll('[data-social]').forEach(function(el){el.innerHTML=html;});} renderSocial(); /* ---------- init ---------- */
 buildRatingRows();
 route();
 </script>
