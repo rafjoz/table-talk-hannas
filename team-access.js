@@ -163,7 +163,7 @@ async function enterStaffArea(session){
   byId('staff-dashboard').classList.remove('hidden');
   const who = byId('staff-who');
   if(who) who.textContent = [me.full_name, me.title].filter(Boolean).join(' · ');
-  byId('team-panel').classList.toggle('hidden', !me.is_admin);
+  byId('team-panel').classList.toggle('hidden', !me.is_admin); document.querySelectorAll('[data-admin-only]').forEach(function(el){ el.classList.toggle('hidden', !me.is_admin); });
   loadSubmissions();
   if(me.is_admin) loadTeam();
 }
