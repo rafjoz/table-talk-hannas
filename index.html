@@ -248,7 +248,7 @@
         <button onclick="submitIssue(this)"class="w-full bg-primary text-on-primary text-label-md py-5 rounded-full flex items-center justify-center gap-2 shadow-lg active:scale-[0.98]">
           <span class="material-symbols-outlined">send</span> Send to Manager
         </button>
-        <p class="text-center text-label-sm text-on-surface-variant mt-4 opacity-70">Flagged as urgent — the management team is notified immediately.</p>
+        <p class="text-center text-label-sm text-on-surface-variant mt-4 opacity-70">Flagged as urgent — it goes straight to the management dashboard. If this can't wait, please tell a staff member now.</p>
       </div>
     </main>
   </section>
@@ -353,7 +353,7 @@
       </div>
     </header>
     <div id="staff-notstaff" class="hidden bg-error-container text-on-error-container rounded-2xl p-md mb-md text-body-md">
-      You're signed in, but this account doesn't have access right now. Ask the owner or manager to approve it..
+      You're signed in, but this account doesn't have access right now. Ask the owner or manager to approve it.
     </div>
     <div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-md">
       <aside class="bg-surface-container-lowest rounded-3xl p-md ambient-shadow h-fit">
@@ -374,7 +374,7 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="team-access.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3"></script><script src="team-access.js"></script>
 <script>
 /* ---------- Supabase connection ----------
    The URL and publishable key are meant to sit in front-end code. Security comes from the
@@ -567,7 +567,7 @@ async function submitIssue(btn){
     urgent: true
   };
   if(await insertRow('submissions', row, btn)){
-    showThankYou("Got it — a manager has been alerted right now.", "We take this seriously. Someone will follow up as soon as possible.");
+    showThankYou("Got it — your report is on the manager's dashboard.", "We take this seriously. If you left contact details, someone will follow up soon. If it can't wait, please tell a staff member now.");
   }
 }
 async function submitSuggestion(btn){
@@ -635,7 +635,7 @@ async function staffLogin(e){
 async function staffLogout(){
   if(sb) await sb.auth.signOut();
   submissions = [];
-  byId('login-email').value = '';
+  byId('login-email').value = ''; team = []; myProfile = null; ['staff-feed','staff-category-bars','staff-overall','staff-overall-note','staff-count','team-list','staff-who','staff-avatar'].forEach(function(i){ const el = byId(i); if(el) el.innerHTML = ''; }); byId('team-panel').classList.add('hidden'); document.querySelectorAll('[data-admin-only]').forEach(function(el){ el.classList.add('hidden'); });
   byId('login-password').value = '';
   showStaffState();
 }

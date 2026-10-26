@@ -223,7 +223,7 @@ function teamRowHtml(p){
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-xs rounded-2xl bg-surface-container-low p-sm">
     <div class="min-w-0">
       <div class="flex flex-wrap items-center gap-1">
-        <span class="text-label-md text-on-surface break-words">${esc(p.full_name || '(no name)')}</span>
+        <span class="w-8 h-8 rounded-full bg-primary-fixed text-primary text-label-sm flex items-center justify-center overflow-hidden shrink-0">${avatarInner(p)}</span><span class="text-label-md text-on-surface break-words">${esc(p.full_name || '(no name)')}</span>
         <span class="px-2 py-0.5 rounded-full bg-surface-container text-label-sm text-on-surface-variant">${esc(p.title)}</span>
         <span class="px-2 py-0.5 rounded-full text-label-sm ${pill}">${esc(p.status)}</span>
         ${p.is_admin ? '<span class="px-2 py-0.5 rounded-full text-label-sm type-pill-suggestion">Admin</span>' : ''}
